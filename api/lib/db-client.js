@@ -4,7 +4,10 @@ import path from "path";
 import bcrypt from "bcryptjs";
 
 // Database filepath for local fallback
-const DATA_DIR = path.join(process.cwd(), "db-data");
+// In Vercel or other serverless/read-only environments, we use /tmp which is writable.
+const DATA_DIR = (process.env.VERCEL || process.env.NOW_REGION)
+  ? "/tmp/db-data"
+  : path.join(process.cwd(), "db-data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 
 // Default initial data for seeding

@@ -51,7 +51,13 @@ export default function AuthScreen({ onAuthSuccess, onBackToHome }: AuthScreenPr
         body: JSON.stringify({ email })
       });
 
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server connection error (${res.status}): ${res.statusText || "Failed to parse system response"}`);
+      }
+
       if (!res.ok) throw new Error(data.error || "Reset failed");
 
       setForgotInst(data.instructions);
@@ -81,7 +87,13 @@ export default function AuthScreen({ onAuthSuccess, onBackToHome }: AuthScreenPr
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server connection error (${res.status}): ${res.statusText || "Failed to parse system response"}`);
+      }
+
       if (!res.ok) {
         throw new Error(data.error || "Authentication failed");
       }
