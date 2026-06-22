@@ -1,39 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/auth/register", "destination": "/api/auth/register.js" },
-    { "source": "/api/auth/login", "destination": "/api/auth/login.js" },
-    { "source": "/api/auth/forgot-password", "destination": "/api/auth/forgot-password.js" },
-    { "source": "/api/auth/me", "destination": "/api/auth/me.js" },
-    { "source": "/api/auth/profile", "destination": "/api/auth/profile.js" },
-    
-    { "source": "/api/farms", "destination": "/api/farms/index.js" },
-    { "source": "/api/farms/:id", "destination": "/api/farms/index.js?id=:id" },
-    
-    { "source": "/api/crops", "destination": "/api/crops/index.js" },
-    { "source": "/api/crops/:id", "destination": "/api/crops/index.js?id=:id" },
-    
-    { "source": "/api/finances", "destination": "/api/finances/index.js" },
-    { "source": "/api/finances/:id", "destination": "/api/finances/index.js?id=:id" },
-    
-    { "source": "/api/market-prices", "destination": "/api/market-prices/index.js" },
-    { "source": "/api/market-prices/:id", "destination": "/api/market-prices/index.js?id=:id" },
-    
-    { "source": "/api/weather", "destination": "/api/weather/index.js" },
-    { "source": "/api/fertilizer", "destination": "/api/fertilizer/index.js" },
-    
-    { "source": "/api/recommendations/crop", "destination": "/api/recommendations/crop.js" },
-    { "source": "/api/recommendations/fertilizer", "destination": "/api/recommendations/fertilizer.js" },
-    
-    { "source": "/api/disease/history", "destination": "/api/disease/history.js" },
-    { "source": "/api/disease/detect", "destination": "/api/disease/detect.js" },
-    { "source": "/api/disease/chat", "destination": "/api/disease/chat.js" },
-    
-    { "source": "/api/admin/users", "destination": "/api/admin/users.js" },
-    { "source": "/api/admin/users/:id", "destination": "/api/admin/users.js?id=:id" },
-    { "source": "/api/admin/users/:id/role", "destination": "/api/admin/users.js?id=:id&action=role" },
-    { "source": "/api/admin/system", "destination": "/api/admin/system.js" },
-    
+    { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/((?!api/).*)", "destination": "/" }
   ]
 }
