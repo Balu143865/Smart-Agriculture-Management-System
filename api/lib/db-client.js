@@ -125,7 +125,10 @@ async function connectToMongo() {
   }
 
   try {
-    const client = new MongoClient(uri);
+    const client = new MongoClient(uri, {
+      connectTimeoutMS: 2500,
+      serverSelectionTimeoutMS: 2500,
+    });
     await client.connect();
     // Default database name "smart_agriculture" unless parsed from URI or set via env
     const dbName = process.env.MONGODB_DB || "smart_agriculture";
