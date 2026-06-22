@@ -1,6 +1,6 @@
 {
   "name": "Smart Agriculture Management System",
-  "description": "An AI-powered full-stack platform for farm analytics, crop and fertilizer recommendations, crop disease leaf detection, real-time weather alerts, market crop price tracking, and comprehensive reports.",
+  "description": "An AI-powered platform for sustainable agriculture and smart farming diagnostics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
