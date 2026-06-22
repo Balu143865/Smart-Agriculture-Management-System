@@ -1,0 +1,529 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "name": "Sanjay Patel",
+      "email": "farmer@farm.com",
+      "passwordHash": "$2b$10$c1.GTYWx1/tId2ICTtOGqeg2Ml4YgnfqogFoRG6KVX/RIEE4pr3jK",
+      "role": "farmer",
+      "phone": "+1 (555) 0192",
+      "address": "Green Valley Fields, Block B, CA",
+      "createdAt": "2026-06-21T14:08:32.502Z"
+    },
+    {
+      "id": "u2",
+      "name": "Admin Administrator",
+      "email": "admin@farm.com",
+      "passwordHash": "$2b$10$yZAe.L/89yIEbMwfMDIVsONZ3xHAd1IZjvQacA8fzCzFjB3egLRny",
+      "role": "admin",
+      "phone": "+1 (555) 0100",
+      "address": "AgriTech Headquarters, CA",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "user_0024imhig",
+      "name": "balu",
+      "email": "balu123@gmail.com",
+      "passwordHash": "$2b$10$RB.T2Prbj/nfLXsDPpis9edEVZTbIvh.qbm2FDHSbTu0mtxv0189q",
+      "role": "farmer",
+      "phone": "6304045279",
+      "address": "hyderabad",
+      "createdAt": "2026-06-21T14:50:44.272Z"
+    }
+  ],
+  "farms": [
+    {
+      "id": "f1",
+      "userId": "u1",
+      "name": "Patel Organic Highlands",
+      "location": "Central Valley, CA",
+      "size": 45,
+      "soilType": "Loamy-Clay",
+      "climateRegion": "Mediterranean",
+      "createdAt": "2026-05-22T14:08:32.599Z"
+    },
+    {
+      "id": "farm_w2aq0oodl",
+      "userId": "user_0024imhig",
+      "name": "balu's Homestead",
+      "location": "hyderabad",
+      "size": 15,
+      "soilType": "Sandy Silt",
+      "climateRegion": "Temperate",
+      "createdAt": "2026-06-21T14:50:44.273Z"
+    }
+  ],
+  "crops": [
+    {
+      "id": "c1",
+      "userId": "u1",
+      "farmId": "f1",
+      "name": "Organic Wheat",
+      "variety": "Durum Red Wheat",
+      "status": "active",
+      "plantedDate": "2026-04-10",
+      "areaPlanted": 25,
+      "expectedYield": 15000,
+      "season": "Spring",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "c2",
+      "userId": "u1",
+      "farmId": "f1",
+      "name": "Cherry Tomatoes",
+      "variety": "Sweet 100",
+      "status": "active",
+      "plantedDate": "2026-05-02",
+      "areaPlanted": 10,
+      "expectedYield": 8200,
+      "season": "Summer",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "c3",
+      "userId": "u1",
+      "farmId": "f1",
+      "name": "Yukon Gold Potato",
+      "variety": "Tubers Extra",
+      "status": "harvested",
+      "plantedDate": "2026-02-15",
+      "harvestedDate": "2026-05-25",
+      "areaPlanted": 10,
+      "expectedYield": 12000,
+      "actualYield": 12400,
+      "season": "Winter",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "t1",
+      "userId": "u1",
+      "farmId": "f1",
+      "type": "income",
+      "category": "Crop Sale",
+      "amount": 14880,
+      "date": "2026-05-28",
+      "description": "Sold harvested Yukon Gold Potatoes (12,400 kg) to local wholesale food hub",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "t2",
+      "userId": "u1",
+      "farmId": "f1",
+      "type": "expense",
+      "category": "Seeds",
+      "amount": 1450,
+      "date": "2026-04-05",
+      "description": "High performance winter potato tubers and organic Cherry Tomato seeds",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "t3",
+      "userId": "u1",
+      "farmId": "f1",
+      "type": "expense",
+      "category": "Fertilizer",
+      "amount": 980,
+      "date": "2026-04-15",
+      "description": "Approved organic nitrogen-rich blood meal and potassium soluble supplements",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "t4",
+      "userId": "u1",
+      "farmId": "f1",
+      "type": "expense",
+      "category": "Irrigation",
+      "amount": 450,
+      "date": "2026-05-10",
+      "description": "Drip tube updates and pump electricity billing for CA Grid",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "t5",
+      "userId": "u1",
+      "farmId": "f1",
+      "type": "income",
+      "category": "Government Subsidy",
+      "amount": 2500,
+      "date": "2026-06-01",
+      "description": "State agriculture smart water-retention equipment credit program",
+      "createdAt": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "tx_8ys6x5bhc",
+      "userId": "user_0024imhig",
+      "farmId": "farm_w2aq0oodl",
+      "type": "income",
+      "category": "Irrigation",
+      "amount": 350,
+      "date": "2026-05-14",
+      "description": "",
+      "createdAt": "2026-06-21T15:04:43.711Z"
+    }
+  ],
+  "diseaseLogs": [
+    {
+      "id": "d1",
+      "userId": "u1",
+      "cropName": "Tomato",
+      "diseaseName": "Early Blight (Alternaria solani)",
+      "confidence": 0.94,
+      "treatment": [
+        "Apply organic copper-based fungicides immediately on affected foliage.",
+        "Pruning lower leaf collars to enhance airflow and prevent upward splash transmission.",
+        "Ensure no overhead sprinkling; rely solely on ground-drip lines."
+      ],
+      "severity": "medium",
+      "date": "2026-06-15"
+    },
+    {
+      "id": "d_kbtq0roxa",
+      "userId": "user_0024imhig",
+      "cropName": "Tomato",
+      "diseaseName": "Watermelon Mosaic Virus",
+      "confidence": 0.85,
+      "treatment": [
+        "Remove and destroy infected plants immediately to prevent the virus from spreading to healthy vines.",
+        "Monitor and control aphid vectors using mineral oils, insecticidal soaps, or selective insecticides.",
+        "Eliminate weeds around the field margins, as they can serve as alternative hosts for both the virus and its aphid vectors."
+      ],
+      "severity": "medium",
+      "date": "2026-06-21"
+    }
+  ],
+  "marketPrices": [
+    {
+      "id": "m1",
+      "cropName": "Wheat (Durum)",
+      "price": 325.5,
+      "unit": "Metric Ton",
+      "change": 4.2,
+      "trend": "up",
+      "region": "Pacific Coast",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m2",
+      "cropName": "Rice (White Paddy)",
+      "price": 412,
+      "unit": "Metric Ton",
+      "change": 1.8,
+      "trend": "up",
+      "region": "Sacramento Valley",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m3",
+      "cropName": "Cherry Tomatoes",
+      "price": 1.95,
+      "unit": "Kilogram",
+      "change": -2.3,
+      "trend": "down",
+      "region": "Central Coast",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m4",
+      "cropName": "Potatoes (Yukon Gold)",
+      "price": 1.2,
+      "unit": "Kilogram",
+      "change": 11.4,
+      "trend": "up",
+      "region": "Bakersfield District",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m5",
+      "cropName": "White Corn",
+      "price": 185,
+      "unit": "Metric Ton",
+      "change": 0,
+      "trend": "stable",
+      "region": "Imperial County",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m6",
+      "cropName": "Soybeans Organic",
+      "price": 468.2,
+      "unit": "Metric Ton",
+      "change": 5.8,
+      "trend": "up",
+      "region": "San Joaquin North",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m7",
+      "cropName": "Barley (Feed Grade)",
+      "price": 210.0,
+      "unit": "Metric Ton",
+      "change": -1.1,
+      "trend": "down",
+      "region": "Idaho Falls District",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m8",
+      "cropName": "Milling Oats",
+      "price": 245.0,
+      "unit": "Metric Ton",
+      "change": 3.2,
+      "trend": "up",
+      "region": "Montana Plains",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m9",
+      "cropName": "Grain Sorghum",
+      "price": 195.0,
+      "unit": "Metric Ton",
+      "change": 0.5,
+      "trend": "stable",
+      "region": "High Plains TX",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m10",
+      "cropName": "Runner Peanuts",
+      "price": 1.15,
+      "unit": "Kilogram",
+      "change": 2.3,
+      "trend": "up",
+      "region": "Georgia Belt",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m11",
+      "cropName": "Garbanzo Chickpeas",
+      "price": 850.0,
+      "unit": "Metric Ton",
+      "change": 1.4,
+      "trend": "up",
+      "region": "Palouse NW Region",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m12",
+      "cropName": "Brown Lentils",
+      "price": 780.0,
+      "unit": "Metric Ton",
+      "change": -0.9,
+      "trend": "down",
+      "region": "North Dakota West",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m13",
+      "cropName": "Yellow Onions",
+      "price": 0.85,
+      "unit": "Kilogram",
+      "change": -3.1,
+      "trend": "down",
+      "region": "Walla Walla WA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m14",
+      "cropName": "Nantes Carrots",
+      "price": 0.90,
+      "unit": "Kilogram",
+      "change": 1.0,
+      "trend": "stable",
+      "region": "Central Valley CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m15",
+      "cropName": "Broccoli Crowns",
+      "price": 1.75,
+      "unit": "Kilogram",
+      "change": 5.2,
+      "trend": "up",
+      "region": "Monterey County CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m16",
+      "cropName": "Organic Baby Spinach",
+      "price": 2.40,
+      "unit": "Kilogram",
+      "change": -0.8,
+      "trend": "stable",
+      "region": "Salinas Valley CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m17",
+      "cropName": "Purple Garlic",
+      "price": 4.10,
+      "unit": "Kilogram",
+      "change": 6.7,
+      "trend": "up",
+      "region": "Gilroy CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m18",
+      "cropName": "Red Bell Peppers",
+      "price": 2.25,
+      "unit": "Kilogram",
+      "change": -2.0,
+      "trend": "down",
+      "region": "Santa Maria CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m19",
+      "cropName": "Gala Apples",
+      "price": 2.10,
+      "unit": "Kilogram",
+      "change": 1.2,
+      "trend": "up",
+      "region": "Yakima Valley WA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m20",
+      "cropName": "Valencia Oranges",
+      "price": 1.85,
+      "unit": "Kilogram",
+      "change": -0.5,
+      "trend": "down",
+      "region": "Florida Ridge Sunkist",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m21",
+      "cropName": "Cavendish Bananas",
+      "price": 0.95,
+      "unit": "Kilogram",
+      "change": 0.0,
+      "trend": "stable",
+      "region": "Guayaquil Port Import",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m22",
+      "cropName": "Fresh Strawberries",
+      "price": 3.40,
+      "unit": "Kilogram",
+      "change": 4.8,
+      "trend": "up",
+      "region": "Watsonville District CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m23",
+      "cropName": "Alphonso Mangoes",
+      "price": 4.50,
+      "unit": "Kilogram",
+      "change": 12.5,
+      "trend": "up",
+      "region": "Devgad Region import",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m24",
+      "cropName": "Duke Blueberries",
+      "price": 5.20,
+      "unit": "Kilogram",
+      "change": -1.5,
+      "trend": "down",
+      "region": "Willamette Valley OR",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m25",
+      "cropName": "Red Globe Grapes",
+      "price": 2.75,
+      "unit": "Kilogram",
+      "change": 2.1,
+      "trend": "up",
+      "region": "Napa Valley District CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m26",
+      "cropName": "Hass Avocados",
+      "price": 3.20,
+      "unit": "Kilogram",
+      "change": -5.4,
+      "trend": "down",
+      "region": "Ventura County CA",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m27",
+      "cropName": "Sweet Watermelons",
+      "price": 0.65,
+      "unit": "Kilogram",
+      "change": 8.2,
+      "trend": "up",
+      "region": "Central Texas Belt",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m28",
+      "cropName": "Anjou Pears",
+      "price": 1.90,
+      "unit": "Kilogram",
+      "change": 1.5,
+      "trend": "up",
+      "region": "Hood River Valley OR",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m29",
+      "cropName": "Bing Cherries",
+      "price": 6.50,
+      "unit": "Kilogram",
+      "change": 8.9,
+      "trend": "up",
+      "region": "Dalles District OR",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m30",
+      "cropName": "Raw Upland Cotton",
+      "price": 0.82,
+      "unit": "Pound",
+      "change": 1.1,
+      "trend": "up",
+      "region": "Memphis Exchange",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m31",
+      "cropName": "Raw Sugarcane",
+      "price": 140.0,
+      "unit": "Metric Ton",
+      "change": 0.8,
+      "trend": "stable",
+      "region": "Louisiana South Belt",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m32",
+      "cropName": "Arabica Coffee Beans",
+      "price": 3.80,
+      "unit": "Kilogram",
+      "change": 8.5,
+      "trend": "up",
+      "region": "New York Spot Market",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    },
+    {
+      "id": "m33",
+      "cropName": "Organic Cocoa Pods",
+      "price": 2.90,
+      "unit": "Kilogram",
+      "change": 14.2,
+      "trend": "up",
+      "region": "Abidjan Spot Port",
+      "lastUpdated": "2026-06-21T14:08:32.599Z"
+    }
+  ]
+}
