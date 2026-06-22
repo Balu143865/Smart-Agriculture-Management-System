@@ -1,4 +1,4 @@
-import { getGeminiClient } from "../lib/gemini.js";
+import { getGeminiClient, generateContentWithRetry } from "../lib/gemini.js";
 import { authenticate } from "../lib/auth.js";
 
 export default async function handler(req, res) {
@@ -59,7 +59,7 @@ Detected Disease: ${diseaseContext?.diseaseName || "Unspecified"}
 Severity: ${diseaseContext?.severity || "Unspecified"}
 Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
 
-    const response = await client.models.generateContent({
+    const response = await generateContentWithRetry(client, {
       model: "gemini-3.5-flash",
       contents: [{ text: `The farmer asks: "${message}"` }],
       config: {

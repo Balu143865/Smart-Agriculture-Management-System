@@ -639,6 +639,66 @@ const getGeminiClient = (): GoogleGenAI | null => {
   return geminiClient;
 };
 
+/**
+ * Executes a Gemini model query with automatic retries and cascading fallbacks
+ * to alternative models to maximize availability and counter 503 / 429 errors.
+ */
+async function generateContentWithRetry(client: any, options: { model?: string; contents: any; config?: any }) {
+  const requestedModel = options.model || "gemini-2.5-flash";
+  const modelsToTry = [
+    requestedModel,
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-2.5-pro"
+  ];
+
+  // Deduplicate while preserving order
+  const uniqueModels = Array.from(new Set(modelsToTry.filter(Boolean)));
+  let lastError: any = null;
+
+  for (const model of uniqueModels) {
+    let attempts = 3;
+    let delay = 1000; // ms
+
+    while (attempts > 0) {
+      try {
+        console.log(`[Gemini Express API] Attempting generateContent with model="${model}"...`);
+        const response = await client.models.generateContent({
+          ...options,
+          model: model,
+        });
+        console.log(`[Gemini Express API] Success using model="${model}".`);
+        return response;
+      } catch (err: any) {
+        lastError = err;
+        const errMsg = err?.message || String(err);
+        const isTemporary = errMsg.includes("503") || 
+                            errMsg.includes("UNAVAILABLE") || 
+                            errMsg.includes("429") || 
+                            errMsg.includes("high demand") || 
+                            errMsg.includes("ResourceExhausted") ||
+                            errMsg.includes("limit") ||
+                            errMsg.includes("overloaded");
+
+        console.warn(`[Gemini Express API] Failed model="${model}" (attempts remaining: ${attempts - 1}). Error: ${errMsg}`);
+
+        if (!isTemporary) {
+          // If it's a structural or auth error (e.g. invalid request format), try next model directly rather than retrying this one
+          break;
+        }
+
+        attempts--;
+        if (attempts > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 1.5;
+        }
+      }
+    }
+  }
+
+  throw lastError || new Error("All fallback models and retries failed.");
+}
+
 // Express App Configuration
 async function startServer() {
   const app = express();

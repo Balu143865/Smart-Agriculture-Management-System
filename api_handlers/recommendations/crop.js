@@ -1,4 +1,4 @@
-import { getGeminiClient, Type } from "../lib/gemini.js";
+import { getGeminiClient, Type, generateContentWithRetry } from "../lib/gemini.js";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Credentials", true);
@@ -84,7 +84,7 @@ Ensure output is ONLY a valid JSON array, do not wrap in markdown quotes. Ensure
   }
 
   try {
-    const response = await client.models.generateContent({
+    const response = await generateContentWithRetry(client, {
       model: "gemini-3.5-flash",
       contents: userPrompt,
       config: {

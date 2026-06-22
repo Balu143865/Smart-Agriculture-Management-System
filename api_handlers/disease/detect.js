@@ -1,6 +1,6 @@
 import { db } from "../lib/db-client.js";
 import { authenticate } from "../lib/auth.js";
-import { getGeminiClient, Type } from "../lib/gemini.js";
+import { getGeminiClient, Type, generateContentWithRetry } from "../lib/gemini.js";
 import { DISEASE_MOCKS } from "../lib/disease-mocks.js";
 
 export default async function handler(req, res) {
@@ -117,7 +117,7 @@ Output EXACTLY this JSON structure. Ensure you synthesize highly realistic value
 Return valid schema-constrained JSON directly.`
     };
 
-    const response = await client.models.generateContent({
+    const response = await generateContentWithRetry(client, {
       model: "gemini-3.5-flash",
       contents: [imagePart, textPart],
       config: {
