@@ -34,67 +34,66 @@ export default function AuthScreen({ onAuthSuccess, onBackToHome }: AuthScreenPr
   };
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const savedUser = localStorage.getItem("agriUser");
-
-  if (!savedUser) {
-    setErrorMsg("No registered account found.");
-    return;
-  }
-
-  const user = JSON.parse(savedUser);
-
-  setSuccessMsg(`Demo Password: ${user.password}`);
-};
-
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setErrorMsg("");
-  setSuccessMsg("");
-  setLoading(true);
-
-  try {
-    let userData: any;
-
-    if (isLogin) {
-      const savedUser = localStorage.getItem("agriUser");
-
-      if (!savedUser) {
-        throw new Error("No account found. Please register first.");
-      }
-
-      userData = JSON.parse(savedUser);
-
-      if (
-        userData.email !== email ||
-        userData.password !== password
-      ) {
-        throw new Error("Invalid email or password");
-      }
-    } else {
-      userData = {
-        name,
-        email,
-        password,
-        phone,
-        address,
-        role,
-      };
-
-      localStorage.setItem(
-        "agriUser",
-        JSON.stringify(userData)
-      );
+    e.preventDefault();
+    if (!email) {
+      setErrorMsg("Please enter your email link first.");
+      return;
     }
 
-    onAuthSuccess("demo-token", userData);
-  } catch (err: any) {
-    setErrorMsg(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setErrorMsg("");
+    setForgotInst("");
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Reset failed");
+
+      setForgotInst(data.instructions);
+      setSuccessMsg(`Temporary password generated: ${data.tempPassword}`);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
+    setLoading(true);
+
+    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+    const payload = isLogin 
+      ? { email, password }
+      : { name, email, password, phone, address, role };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Authentication failed");
+      }
+
+      // Success
+      onAuthSuccess(data.token, data.user);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
