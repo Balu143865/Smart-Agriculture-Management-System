@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 // Database filepath for local fallback
 // In Vercel or other serverless/read-only environments, we use /tmp which is writable.
-const DATA_DIR = (process.env.VERCEL || process.env.NOW_REGION)
+const DATA_DIR = (process.env.VERCEL || process.env.NOW_REGION || process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT)
   ? "/tmp/db-data"
   : path.join(process.cwd(), "db-data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
