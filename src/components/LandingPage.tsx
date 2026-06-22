@@ -15,9 +15,13 @@ import {
   Menu, 
   X,
   Target,
-  Zap
+  Zap,
+  Sparkles,
+  Activity,
+  CheckCircle,
+  HelpCircle
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -29,6 +33,52 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", msg: "" });
   const [formSubmitted, setFormSubmitted] = useState(false);
+
+  // Live Simulator state for professional starting page engagement
+  const [simCrop, setSimCrop] = useState<"Wheat" | "Tomatoes" | "Corn">("Wheat");
+  const [simMoisture, setSimMoisture] = useState<"Low" | "Medium" | "High">("Medium");
+  const [simNutrient, setSimNutrient] = useState<"High Nitrogen" | "High Phosphate" | "Balanced NPK">("Balanced NPK");
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simProgress, setSimProgress] = useState(100);
+
+  useEffect(() => {
+    setIsSimulating(true);
+    setSimProgress(0);
+    const interval = setInterval(() => {
+      setSimProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsSimulating(false);
+          return 100;
+        }
+        return prev + 20;
+      });
+    }, 70);
+    return () => clearInterval(interval);
+  }, [simCrop, simMoisture, simNutrient]);
+
+  const getSimulationResult = () => {
+    const configMap = {
+      Wheat: {
+        Low: { yield: "+12%", status: "Moderate", css: "text-amber-650 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40", border: "border-amber-100 dark:border-amber-900/40", advice: "Drip irrigate for 45 mins. Prioritize high Nitrogen complex to stimulate stem growth." },
+        Medium: { yield: "+38%", status: "Excellent", css: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40", border: "border-emerald-100 dark:border-emerald-900/40", advice: "Optimum silt moisture content. Apply micro-nutrient foliar sprays at sunset." },
+        High: { yield: "+5%", status: "Saturated", css: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40", border: "border-rose-100 dark:border-rose-900/40", advice: "Ditch soil boundaries to drain pools. Postpone organic Nitrogen feeds." }
+      },
+      Tomatoes: {
+        Low: { yield: "+8%", status: "Critical Stressed", css: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40", border: "border-rose-100 dark:border-rose-900/40", advice: "Ground requires dry mulch leaf cover. Feed potassium-high organic formula." },
+        Medium: { yield: "+45%", status: "Exceptional", css: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40", border: "border-emerald-100 dark:border-emerald-900/40", advice: "Ideal sapling moisture. Integrate dynamic N-P-K mineral fertilizer." },
+        High: { yield: "+18%", status: "Root-Rot Hazard", css: "text-amber-655 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40", border: "border-amber-100 dark:border-amber-900/40", advice: "Prune bottom leaf nodes to allow dry draft. Check soil pH index." }
+      },
+      Corn: {
+        Low: { yield: "+15%", status: "Dry Soil Limit", css: "text-amber-655 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40", border: "border-amber-100 dark:border-amber-900/40", advice: "Irrigate seed layers before noon heat peaks to safeguard stalk vitality." },
+        Medium: { yield: "+35%", status: "Highly Stable", css: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40", border: "border-emerald-100 dark:border-emerald-900/40", advice: "Robust crop node density. Top-dress with calcium-nitrite during leafing." },
+        High: { yield: "+10%", status: "Leaching Risk", css: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40", border: "border-rose-100 dark:border-rose-900/40", advice: "Check drainage pathways. Dispense liquid trace minerals to preserve crop weight." }
+      }
+    };
+    return configMap[simCrop][simMoisture];
+  };
+
+  const currentResult = getSimulationResult();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,45 +140,62 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
       
       {/* 1. Animated Navigation Menu */}
-      <nav id="landing-navbar" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/90 shadow-md dark:bg-slate-900/95 backdrop-blur-md py-3" : "bg-transparent py-5"}`}>
+      <nav id="landing-navbar" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/80 shadow-md dark:bg-slate-900/90 backdrop-blur-md py-3" : "bg-transparent py-5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-600 rounded-xl text-white">
-              <Sprout className="w-6 h-6" />
+          <motion.div 
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex items-center gap-2"
+          >
+            <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-md shadow-emerald-600/10 dark:shadow-none">
+              <Sprout className="w-5.5 h-5.5" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
               Agri<span className="text-emerald-600 dark:text-emerald-400">Smart</span>
             </span>
-          </div>
+          </motion.div>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">Features</a>
-            <a href="#about" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">About</a>
-            <a href="#stats" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">Impact Indicators</a>
-            <a href="#contact" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400">Contact</a>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
+            className="hidden md:flex items-center gap-8"
+          >
+            <a href="#features" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Features</a>
+            <a href="#about" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">About</a>
+            <a href="#stats" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Impact Indicators</a>
+            <a href="#contact" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Contact</a>
+          </motion.div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <motion.div 
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="hidden md:flex items-center gap-4"
+          >
             <button 
               onClick={onLoginClick}
-              className="text-sm font-medium px-4 py-2 text-slate-700 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400"
+              className="text-sm font-medium px-4 py-2 text-slate-705 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors"
             >
               Sign In
             </button>
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onGetStarted}
-              className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2 rounded-xl hover:bg-emerald-700 shadow-md transition-all active:scale-95"
+              className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-600/10 hover:shadow-emerald-650/20 transition-all"
             >
               Join Platform
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
           {/* Mobile hamburger */}
           <div className="md:hidden">
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg"
+              className="p-2 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -137,7 +204,11 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
 
         {/* Mobile menu panel */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 py-4 space-y-3 shadow-lg absolute left-0 right-0">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 py-4 space-y-3 shadow-lg absolute left-0 right-0"
+          >
             <a 
               href="#features" 
               onClick={() => setMobileMenuOpen(false)}
@@ -180,124 +251,280 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
                 Join Platform
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
       </nav>
 
       {/* 2. Hero Section */}
-      <section className="relative pt-32 pb-24 md:pt-44 md:pb-36 overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50/20 to-lime-50/30 dark:from-slate-950 dark:via-emerald-950/10 dark:to-teal-950/20">
+      <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden bg-gradient-to-br from-emerald-50/70 via-teal-50/20 to-lime-50/40 dark:from-slate-950 dark:via-emerald-950/10 dark:to-teal-950/20">
         <div className="absolute inset-0 z-0 opacity-40 dark:opacity-20 pointer-events-none">
           {/* Subtle nature grid pattern */}
-          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-emerald-300 blur-3xl dark:bg-emerald-900/40"></div>
-          <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-lime-300 blur-3xl dark:bg-lime-900/30"></div>
+          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-emerald-300/40 blur-3xl dark:bg-emerald-900/20"></div>
+          <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-lime-300/30 blur-3xl dark:bg-lime-900/10"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100 rounded-full text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5 fill-emerald-500" /> Advanced Gemini-AI Agricultural Core
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] font-display">
+          
+          {/* Left Column: Heading, description, dynamic animations */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100 rounded-full text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider"
+            >
+              <Zap className="w-3.5 h-3.5 fill-emerald-500 text-emerald-600 dark:text-emerald-300" /> Advanced Gemini-AI Agricultural Core
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] font-display"
+            >
               Smart Analytics for <br/>
-              <span className="text-emerald-600 dark:text-emerald-400">High-Yield Farming</span>
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0">
-              AgriSmart provides smallholders and enterprise growers with instant Gemini artificial intelligence insights. Analyze leaf diseases from images, get fertilizer dosages, and track financial margins in one responsive dashboard.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-              <button 
+              <span className="text-emerald-600 dark:text-emerald-450 bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">High-Yield Farming</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+              className="text-base sm:text-lg text-slate-600 dark:text-slate-350 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+            >
+              AgriSmart provides smallholders and enterprise growers with instant Gemini artificial intelligence insights. Analyze leaf diseases from images, get fertilizer dosages, and track financial margins in one responsive, animated dashboard.
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
+            >
+              <motion.button 
+                whileHover={{ scale: 1.025, y: -1 }}
+                whileTap={{ scale: 0.985 }}
                 onClick={onGetStarted}
-                className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-600/20 shadow-emerald-500/10 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-600/30 shadow-emerald-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer border-0"
               >
                 Go to App Dashboard <ChevronRight className="w-4 h-4" />
-              </button>
-              <a 
+              </motion.button>
+              <motion.a 
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.985 }}
                 href="#features"
-                className="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl text-center hover:bg-slate-50 hover:text-emerald-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 transition-all active:scale-95"
+                className="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl text-center hover:bg-slate-50 hover:text-emerald-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition-all cursor-pointer"
               >
                 Explore Features
-              </a>
-            </div>
+              </motion.a>
+            </motion.div>
 
-            {/* Micro proofs */}
-            <div className="pt-6 grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0 text-slate-500 dark:text-slate-400">
+            {/* Micro proofs with staggered opacity */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="pt-6 grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0 text-slate-550 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/85"
+            >
               <div>
                 <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">45+ Acres</span>
-                <span className="text-xs">Avg. Farm Cover</span>
+                <span className="text-[11px] font-mono tracking-tight">Avg. Farm Cover</span>
               </div>
               <div>
                 <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">30% Plus</span>
-                <span className="text-xs">Saving on Feed</span>
+                <span className="text-[11px] font-mono tracking-tight">Saving on Feed</span>
               </div>
               <div>
                 <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">95% AI</span>
-                <span className="text-xs">Diagnosis Acc.</span>
+                <span className="text-[11px] font-mono tracking-tight">Diagnosis Acc.</span>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="lg:col-span-5 relative">
-            {/* Visual farm mockup with UI accents */}
-            <div className="relative mx-auto max-w-md lg:max-w-none">
-              <div className="absolute inset-0 bg-emerald-500 rounded-3xl rotate-3 scale-95 opacity-10 dark:bg-emerald-700/20"></div>
-              <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Sensors Live Overview</span>
-                  </div>
-                  <span className="text-xs text-slate-400">Patel Organic East</span>
+          {/* Right Column: Premium Interactive Crop suitability & Diagnostics Sandbox */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 25 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15, type: "spring", stiffness: 180, damping: 20 }}
+            className="lg:col-span-6 relative"
+          >
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur opacity-15 dark:opacity-20 animate-pulse"></div>
+            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/90 rounded-3xl p-5 sm:p-6 shadow-2xl overflow-hidden">
+              
+              {/* Header bar */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
+                    Live AI Sandbox <Sparkles className="w-3 h-3 text-emerald-500 fill-emerald-500 animate-bounce" />
+                  </span>
                 </div>
-
-                {/* Simulated telemetry UI cards */}
-                <div className="py-4 space-y-4">
-                  <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-3.5 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-xl">
-                        <Droplet className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
-                      </div>
-                      <div>
-                        <span className="block text-xs text-slate-500 dark:text-slate-400">Soil Silt Moisture</span>
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">62.8% [Optimum]</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold px-2 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 rounded">Good</span>
-                  </div>
-
-                  <div className="bg-amber-50/50 dark:bg-amber-950/20 p-3.5 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-100 dark:bg-amber-900 rounded-xl">
-                        <ShieldAlert className="w-5 h-5 text-amber-700 dark:text-amber-300" />
-                      </div>
-                      <div>
-                        <span className="block text-xs text-slate-500 dark:text-slate-400">Leaf Rust Diagnostics</span>
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Early Blight detected</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 rounded">Alert</span>
-                  </div>
-
-                  <div className="bg-teal-50/50 dark:bg-teal-950/20 p-3.5 rounded-2xl flex items-center justify-between w-full">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-teal-100 dark:bg-teal-900 rounded-xl">
-                        <TrendingUp className="w-5 h-5 text-teal-700 dark:text-teal-300" />
-                      </div>
-                      <div>
-                        <span className="block text-xs text-slate-500 dark:text-slate-400">Net Estimated Profit Margin</span>
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">+$12,380.00</span>
-                      </div>
-                    </div>
-                    <span className="text-xs text-emerald-600 font-bold">+14.2%</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
-                  <span>Gemini Model Node:</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">gemini-3.5-flash</span>
-                </div>
+                <span className="text-[11px] font-mono text-slate-400 font-medium">Model: gemini-3.5-flash</span>
               </div>
+
+              {/* Instructions intro */}
+              <p className="text-[11px] text-slate-500 dark:text-slate-450 mt-2.5 leading-relaxed">
+                Interact with the starting selectors to let AgriSmart calculate prospective yield parameters, soil compatibility, and organic prescriptions instantly:
+              </p>
+
+              {/* Selectors */}
+              <div className="mt-4 space-y-3.5 text-xs text-slate-700 dark:text-slate-300">
+                
+                {/* 1. Selector Crop focus */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-widest font-mono">1. Select Target Crop</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { name: "Wheat", icon: "🌾" },
+                      { name: "Tomatoes", icon: "🍅" },
+                      { name: "Corn", icon: "🌽" }
+                    ].map((crop) => (
+                      <button
+                        key={crop.name}
+                        onClick={() => setSimCrop(crop.name as any)}
+                        className={`py-2 px-2.5 rounded-xl border font-semibold flex items-center justify-center gap-1.5 transition-all outline-none cursor-pointer ${
+                          simCrop === crop.name
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/20"
+                            : "bg-slate-50 border-slate-200/80 dark:bg-slate-800/50 dark:border-slate-700/60 hover:bg-slate-100 hover:border-slate-300 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                        }`}
+                      >
+                        <span>{crop.icon}</span>
+                        <span className="text-[11px]">{crop.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Selector Moisture level */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-widest font-mono">2. Soil Moisture level</span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {["Low", "Medium", "High"].map((lev) => (
+                        <button
+                          key={lev}
+                          onClick={() => setSimMoisture(lev as any)}
+                          className={`py-1.5 rounded-lg border text-center font-bold text-[10px] transition-all outline-none cursor-pointer ${
+                            simMoisture === lev
+                              ? "bg-slate-900 border-slate-900 text-white dark:bg-emerald-500 dark:border-emerald-500 dark:text-slate-950 shadow-sm"
+                              : "bg-slate-50 border-slate-200/80 dark:bg-slate-800/40 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          }`}
+                        >
+                          {lev}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. Nutrient setup */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-widest font-mono">3. Nutrient Status</span>
+                    <div className="grid grid-cols-1 gap-1">
+                      {["Balanced NPK", "High Nitrogen", "High Phosphate"].map((nut) => (
+                        <button
+                          key={nut}
+                          onClick={() => setSimNutrient(nut as any)}
+                          className={`py-1 px-2 border rounded-lg text-left text-[10px] font-semibold transition-all flex items-center justify-between outline-none cursor-pointer ${
+                            simNutrient === nut
+                              ? "bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-900/40 dark:text-teal-300"
+                              : "bg-slate-50/50 border-slate-200/80 dark:bg-slate-800/20 dark:border-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
+                          }`}
+                        >
+                          <span>{nut}</span>
+                          <span className={`${simNutrient === nut ? "opacity-100 scale-100" : "opacity-0 scale-75"} text-[9px] bg-emerald-600 text-white px-1 rounded transition-all`}>✓</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Dynamic Loading Overlay & Output Panel area */}
+              <div className="relative mt-4 pt-3.5 border-t border-dashed border-slate-200 dark:border-slate-850 min-h-[160px] flex flex-col justify-center">
+                
+                <AnimatePresence mode="wait">
+                  {isSimulating ? (
+                    <motion.div 
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-10 space-y-2.5 text-center"
+                    >
+                      <Activity className="w-7 h-7 text-emerald-500 animate-pulse" />
+                      <div>
+                        <div className="text-[11px] font-semibold font-mono text-slate-700 dark:text-slate-300 tracking-tight">
+                          {simProgress < 40 ? "Aligning satellite moisture layers..." : "Synthesizing chemistry telemetry..."}
+                        </div>
+                        <div className="w-36 bg-slate-200 dark:bg-slate-800 h-1 rounded-full mt-2 mx-auto overflow-hidden">
+                          <motion.div 
+                            className="bg-emerald-500 h-full rounded"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${simProgress}%` }}
+                            transition={{ duration: 0.35 }}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+
+                {/* Actual outputs computed */}
+                <motion.div 
+                  key="result"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-3.5"
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    
+                    {/* Block A: Prospective improvement */}
+                    <div className="p-3 bg-emerald-50/65 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex flex-col justify-between">
+                      <span className="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block">Est. Yield Improve</span>
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-display">{currentResult.yield}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 font-mono">Harvest Gain</span>
+                      </div>
+                    </div>
+
+                    {/* Block B: Suitability categorizer */}
+                    <div className={`p-3 border rounded-2xl flex flex-col justify-between ${currentResult.border}`}>
+                      <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Soil Compatibility</span>
+                      <div className="mt-1">
+                        <span className={`inline-block px-2.5 py-1 text-xs font-bold rounded-lg ${currentResult.css}`}>
+                          {currentResult.status}
+                        </span>
+                        <div className="text-[9px] text-slate-400 dark:text-slate-500 mt-1.5 font-mono">Optimal balance target: 65%</div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Prescription advice text */}
+                  <div className="p-3 bg-slate-55 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-2 text-[11px] leading-relaxed">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <div>
+                      <strong className="text-slate-800 dark:text-slate-200 font-semibold">Gemini Soil Core Recommendation: </strong>
+                      <span className="text-slate-600 dark:text-slate-300">{currentResult.advice}</span>
+                    </div>
+                  </div>
+
+                  {/* Micro simulated gauge */}
+                  <div className="flex items-center justify-between text-[9px] text-slate-400 font-semibold font-mono uppercase tracking-widest px-1">
+                    <span>N Dosage: 40%</span>
+                    <span>P Dosage: 65%</span>
+                    <span>K Dosage: 88%</span>
+                  </div>
+
+                </motion.div>
+
+              </div>
+
             </div>
-          </div>
+          </motion.div>
+
         </div>
       </section>
 
@@ -335,7 +562,7 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5 relative">
-              <div className="relative aspect-square max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 bg-emerald-800 text-white p-8 flex flex-col justify-between">
+              <div className="relative aspect-auto min-h-[380px] sm:min-h-[400px] lg:aspect-square max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 bg-emerald-800 text-white p-6 sm:p-8 flex flex-col justify-between">
                 <div className="space-y-4">
                   <Sprout className="w-12 h-12 text-emerald-300" />
                   <blockquote className="text-lg italic text-emerald-100 leading-relaxed">

@@ -53,6 +53,29 @@ export interface DiseaseLog {
   severity: "low" | "medium" | "high";
   treatment: string[];
   date: string;
+  imageUrl?: string;
+  
+  // Extended advanced details
+  affectedPart?: string;
+  description?: string;
+  symptoms?: string[];
+  causes?: string[];
+  prevention?: string[];
+  treatmentMethods?: string[];
+  recommendations?: Array<{
+    productName: string;
+    brandName: string;
+    productType: "Fungicide" | "Insecticide" | "Pesticide" | "Bio-Control" | "Organic Product";
+    dosage: string;
+    usageInstructions: string;
+    price: string;
+    reasonRecommended: string;
+    recoveryTime: string;
+    image?: string;
+  }>;
+  organicAlternatives?: string[];
+  homeRemedies?: string[];
+  futurePreventionTips?: string[];
 }
 
 export interface MarketPrice {
@@ -93,6 +116,29 @@ export interface DiseaseResult {
   severity: "low" | "medium" | "high";
   diagnosis: string;
   treatment: string[];
+  
+  // Extended advanced details
+  cropName?: string;
+  affectedPart?: string;
+  description?: string;
+  symptoms?: string[];
+  causes?: string[];
+  prevention?: string[];
+  treatmentMethods?: string[];
+  recommendations?: Array<{
+    productName: string;
+    brandName: string;
+    productType: "Fungicide" | "Insecticide" | "Pesticide" | "Bio-Control" | "Organic Product";
+    dosage: string;
+    usageInstructions: string;
+    price: string;
+    reasonRecommended: string;
+    recoveryTime: string;
+    image?: string;
+  }>;
+  organicAlternatives?: string[];
+  homeRemedies?: string[];
+  futurePreventionTips?: string[];
 }
 
 export interface AnalyticsData {

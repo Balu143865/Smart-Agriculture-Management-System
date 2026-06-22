@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sprout, HelpCircle, Thermometer, CloudRain, ShieldCheck, Cpu, Play, Compass, RefreshCw, AlertCircle } from "lucide-react";
 import { Recommendation, FertilizerAdvice } from "../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface AIRecommendersProps {
   authToken: string;
+  defaultTab?: "crop" | "fertilizer";
 }
 
-export default function AIRecommenders({ authToken }: AIRecommendersProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"crop" | "fertilizer">("crop");
+export default function AIRecommenders({ authToken, defaultTab = "crop" }: AIRecommendersProps) {
+  const [activeSubTab, setActiveSubTab] = useState<"crop" | "fertilizer">(defaultTab);
+
+  useEffect(() => {
+    setActiveSubTab(defaultTab);
+  }, [defaultTab]);
   const [loading, setLoading] = useState(false);
   const [errorHeader, setErrorHeader] = useState("");
 
@@ -252,9 +258,13 @@ export default function AIRecommenders({ authToken }: AIRecommendersProps) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {cropRecs.map((crop, idx) => (
-                  <div 
+                  <motion.div 
                     key={idx}
-                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: idx * 0.08, type: "spring", stiffness: 220, damping: 22 }}
+                    whileHover={{ y: -4, scale: 1.015 }}
+                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden group hover:shadow-md transition-all"
                   >
                     <div className="absolute top-0 right-0 p-3 bg-emerald-100/50 dark:bg-emerald-950/40 rounded-bl-3xl text-emerald-800 dark:text-emerald-300 text-xs font-bold font-mono">
                       Score: {crop.suitabilityScore}%
@@ -289,7 +299,7 @@ export default function AIRecommenders({ authToken }: AIRecommendersProps) {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -420,7 +430,12 @@ export default function AIRecommenders({ authToken }: AIRecommendersProps) {
                 <p className="text-xs max-w-sm mx-auto mt-1 leading-relaxed">Submit the crop target and active N-P-K nutrient status to let Gemini diagnose dynamic chemistry prescriptions.</p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.98, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.45, type: "spring", stiffness: 220, damping: 22 }}
+                className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6"
+              >
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-50 dark:border-slate-800/60 pb-5">
                   <div className="space-y-1">
@@ -429,7 +444,7 @@ export default function AIRecommenders({ authToken }: AIRecommendersProps) {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">NPK Target Balance Ratio</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block flex items-center gap-1">NPK balance target ratio</span>
                     <span className="text-sm font-bold text-emerald-600 font-mono">{fertilizerAdvice.npkTargetRatio || "Auto NPK Balance"}</span>
                   </div>
 
@@ -466,7 +481,7 @@ export default function AIRecommenders({ authToken }: AIRecommendersProps) {
                     ))}
                   </ol>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

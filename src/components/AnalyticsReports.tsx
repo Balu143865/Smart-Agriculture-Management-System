@@ -668,7 +668,7 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
           </div>
 
           <div className="h-80 w-full text-xs font-mono">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={320}>
               <LineChart data={financialChart}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:opacity-10" />
                 <XAxis dataKey="month" stroke="#94a3b8" />
@@ -693,7 +693,7 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
               {expenseCategoryChart.length === 0 ? (
                 <p className="text-slate-400 text-xs italic text-center">No expense logs found to analyze allocations.</p>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
                       data={expenseCategoryChart}
@@ -743,7 +743,7 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
             {cropYields.length === 0 ? (
               <p className="text-slate-400 italic text-center p-24">Create active crops first to index yield estimations.</p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={cropYields}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:opacity-10" />
                   <XAxis dataKey="name" stroke="#94a3b8" />

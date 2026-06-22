@@ -674,8 +674,175 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors duration-300">
       
-      {/* 1. Dashboard Sidebar Controller */}
-      <aside className={`w-full md:w-64 shrink-0 border-r md:min-h-screen p-4 flex flex-col justify-between py-6 transition-all duration-500 ease-in-out ${cTheme.sidebarBg} ${cTheme.borderAccent.replace("border-", "border-r-") || "border-white/10"}`}>
+      {/* Mobile Top Header (Visible on mobile only, sticky) */}
+      <header className={`md:hidden sticky top-0 z-50 flex items-center justify-between p-4 shadow-md border-b border-white/10 ${cTheme.sidebarBg}`}>
+        <div className="flex items-center gap-2">
+          <div className="p-1 px-2 bg-white/15 rounded-lg text-white border border-white/10 shadow-sm">
+            <Sprout className="w-4 h-4 animate-pulse" />
+          </div>
+          <span className="text-base font-bold tracking-tight font-display text-white">
+            Agri<span className="opacity-80">Smart</span>
+          </span>
+        </div>
+        
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 focus:outline-none transition-all cursor-pointer"
+          aria-label="Toggle Navigation Menu"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </header>
+
+      {/* Mobile Drawer Slide-Down (Visible only on mobile when menu is active) */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={`md:hidden overflow-hidden border-b border-white/10 px-4 pb-6 pt-2 space-y-4 shadow-xl select-none sticky top-[57px] z-45 ${cTheme.sidebarBg}`}
+          >
+            {/* Quick theme switcher for mobile */}
+            <div className="flex items-center justify-between bg-black/20 p-2 rounded-xl border border-white/5 mx-1">
+              <span className="text-xs text-white/70 font-semibold font-sans">Theme Swatch:</span>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setThemeMode("light")}
+                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "light" ? "bg-white/20 text-white" : "text-white/40"}`}
+                >
+                  <Sun className="w-3.5 h-3.5" />
+                </button>
+                <button 
+                  onClick={() => setThemeMode("dark")}
+                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "dark" ? "bg-white/20 text-white" : "text-white/40"}`}
+                >
+                  <Moon className="w-3.5 h-3.5" />
+                </button>
+                <button 
+                  onClick={() => setThemeMode("system")}
+                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "system" ? "bg-white/20 text-white" : "text-white/40"}`}
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Profile node brief */}
+            <div className="p-3 bg-black/15 rounded-xl space-y-1 border border-white/5 mx-1">
+              <div className="flex items-center gap-2 text-xs">
+                <User className="w-3.5 h-3.5 text-white/80" />
+                <span className="font-bold truncate text-white">{currentUser?.name}</span>
+              </div>
+              <span className="block text-[9px] uppercase font-bold text-white/60 font-mono tracking-wider">
+                Role: {currentUser?.role}
+              </span>
+            </div>
+
+            {/* Nav links */}
+            <nav className="flex flex-col gap-1 text-xs font-semibold mx-1">
+              <button 
+                onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "overview" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <Compass className="w-4 h-4" /> Operations Overview
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("farms"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "farms" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <MapPin className="w-4 h-4" /> Farm Registries
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("crops"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "crops" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <Layers className="w-4 h-4" /> Crop Timelines
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("operations"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "operations" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <TrendingUp className="w-4 h-4" /> Operating Budget
+              </button>
+
+              <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">AI Solvers</div>
+
+              <button 
+                onClick={() => { setActiveTab("recommendation"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "recommendation" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <Sprout className="w-4 h-4" /> Crop SUITABILITY
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("fertilizer"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "fertilizer" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <Droplet className="w-4 h-4" /> Fertilizer SUGGESTION
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("disease"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "disease" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <ShieldAlert className="w-4 h-4" /> Disease detection
+              </button>
+
+              <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">Pricing & Reports</div>
+
+              <button 
+                onClick={() => { setActiveTab("market"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "market" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <Globe className="w-4 h-4" /> Market wholesale Prices
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab("reports"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "reports" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                <PieChart className="w-4 h-4" /> Analytics Reports
+              </button>
+
+              {currentUser?.role === "admin" && (
+                <>
+                  <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2 font-semibold">Admin Core</div>
+                  <button 
+                    onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); }}
+                    className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "admin" ? "bg-violet-900 text-slate-100 shadow-md shadow-black/10" : `text-white/75 hover:text-white`}`}
+                  >
+                    <ShieldCheck className="w-4 h-4" /> System Inspections
+                  </button>
+                </>
+              )}
+            </nav>
+
+            <div className="border-t border-white/10 pt-4 flex flex-col gap-2 mx-1">
+              <button 
+                onClick={() => { setActiveTab("profile"); setMobileMenuOpen(false); }}
+                className={`w-full text-left p-2 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ${activeTab === "profile" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+              >
+                Manage User Profile & Themes
+              </button>
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full text-left p-2 rounded-xl text-xs font-bold text-rose-300 hover:bg-rose-955/20 flex items-center gap-2 cursor-pointer transition-all duration-200"
+              >
+                <LogOut className="w-4 h-4" /> Exit Session node
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 1. Dashboard Sidebar Controller (Visible on desktops & tablets only) */}
+      <aside className={`hidden md:flex w-64 shrink-0 border-r min-h-screen p-4 flex-col justify-between py-6 transition-all duration-500 ease-in-out ${cTheme.sidebarBg} ${cTheme.borderAccent.replace("border-", "border-r-") || "border-white/10"}`}>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -694,21 +861,21 @@ export default function App() {
                 title="Light Mode"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "light" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
-                {iconStyle === "glow" ? <Sun className="w-3.5 h-3.5 fill-amber-300 stroke-amber-500" /> : <Sun className="w-3.5 h-3.5 stroke-1 text-white" />}
+                {iconStyle === "glow" ? <Sun className="w-3.5 h-3.5 text-amber-400" fill="#fcd34d" /> : <Sun className="w-3.5 h-3.5 stroke-1 text-white" />}
               </button>
               <button 
                 onClick={() => setThemeMode("dark")}
                 title="Dark Mode"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "dark" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
-                {iconStyle === "glow" ? <Moon className="w-3.5 h-3.5 fill-slate-300 stroke-slate-500" /> : <Moon className="w-3.5 h-3.5 stroke-1 text-white" />}
+                {iconStyle === "glow" ? <Moon className="w-3.5 h-3.5 text-indigo-300" fill="#a5b4fc" /> : <Moon className="w-3.5 h-3.5 stroke-1 text-white" />}
               </button>
               <button 
                 onClick={() => setThemeMode("system")}
                 title="System Preferences"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "system" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
-                {iconStyle === "glow" ? <Monitor className="w-3.5 h-3.5 fill-emerald-300 stroke-emerald-500" /> : <Monitor className="w-3.5 h-3.5 stroke-1 text-white" />}
+                {iconStyle === "glow" ? <Monitor className="w-3.5 h-3.5 text-emerald-400" fill="#6ee7b7" /> : <Monitor className="w-3.5 h-3.5 stroke-1 text-white" />}
               </button>
             </div>
           </div>
@@ -824,7 +991,7 @@ export default function App() {
       </aside>
 
       {/* 2. Main Work Canvas Area */}
-      <main className="flex-1 p-4 sm:p-8 overflow-y-auto max-h-screen">
+      <main className="flex-1 p-4 sm:p-8 overflow-y-auto md:max-h-screen">
         
         {/* Banner Alert triggers */}
         {errorBanner && (
@@ -853,7 +1020,7 @@ export default function App() {
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight font-display text-slate-900 dark:text-white">Operations Command Center</h1>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-slate-900 dark:text-white">Operations Command Center</h1>
                 <p className="text-xs text-slate-500">Live summary of farm inputs, NPK ratios, and current weather alerts</p>
               </div>
               <button 
@@ -963,7 +1130,7 @@ export default function App() {
           >
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight font-display">Registered Farm Acreages</h1>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Registered Farm Acreages</h1>
                 <p className="text-xs text-slate-500 font-mono">Total tracked crop matrices: {farms.length} distinct fields</p>
               </div>
             </div>
@@ -1124,7 +1291,7 @@ export default function App() {
             className="space-y-6"
           >
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">Sown Crop Timelines</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Sown Crop Timelines</h1>
               <p className="text-xs text-slate-500">Track sown seed variety profiles, crop expectations, and harvesting indices</p>
             </div>
 
@@ -1345,7 +1512,7 @@ export default function App() {
             className="space-y-6"
           >
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">Operating Balances & Budgets</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Operating Balances & Budgets</h1>
               <p className="text-xs text-slate-500">Track seed fertilizer acquisition overheads and wholesale revenue balances</p>
             </div>
 
@@ -1524,10 +1691,10 @@ export default function App() {
         {activeTab === "recommendation" && (
           <div className="space-y-6 animate-fade-in-up">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">AI Crop Recommendations</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">AI Crop Recommendations</h1>
               <p className="text-xs text-slate-500">Provide local soil profile and climate data to trigger Gemini and generate custom crop timelines with suitability scores</p>
             </div>
-            <AIRecommenders authToken={authToken} />
+            <AIRecommenders authToken={authToken} defaultTab="crop" />
           </div>
         )}
 
@@ -1537,10 +1704,10 @@ export default function App() {
         {activeTab === "fertilizer" && (
           <div className="space-y-6 animate-fade-in-up">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">Soil Nutrition & Fertilizer formulation</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Soil Nutrition & Fertilizer formulation</h1>
               <p className="text-xs text-slate-500">Analyze raw N-P-K (Nitrogen, Phosphorus, Potassium) test values and pH levels to let Gemini calculate chemical dosage instructions</p>
             </div>
-            <AIRecommenders authToken={authToken} />
+            <AIRecommenders authToken={authToken} defaultTab="fertilizer" />
           </div>
         )}
 
@@ -1550,7 +1717,7 @@ export default function App() {
         {activeTab === "disease" && (
           <div className="space-y-6 animate-fade-in-up">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display text-slate-905 dark:text-white">AI Crop Disease Leaf pathology scan</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-slate-905 dark:text-white">AI Crop Disease Leaf pathology scan</h1>
               <p className="text-xs text-slate-500">Snap or upload close-up specimen leaf images to diagnose fungal infections or blights and receive remedy lists instantly via Gemini vision neural systems.</p>
             </div>
             <AIDiseaseDetector authToken={authToken} />
@@ -1563,7 +1730,7 @@ export default function App() {
         {activeTab === "market" && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">Wholesale Daily Crop Prices</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Wholesale Daily Crop Prices</h1>
               <p className="text-xs text-slate-500">Review spot prices across regions. Administrators are authorized to update daily rate cards.</p>
             </div>
             <MarketPriceBoard 
@@ -1580,7 +1747,7 @@ export default function App() {
         {activeTab === "reports" && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight font-display">Advanced Analytics & Financial Reports</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Advanced Analytics & Financial Reports</h1>
               <p className="text-xs text-slate-500">Visualizing compound yield expectations, monthly spending allocations, and overall profit margins</p>
             </div>
             <AnalyticsReports authToken={authToken} />
@@ -1733,7 +1900,7 @@ export default function App() {
                     >
                       {iconStyle === "glow" ? (
                         <div className="p-2 bg-amber-100 dark:bg-amber-950/60 text-amber-600 rounded-xl shadow-inner animate-pulse">
-                          <Sun className="w-5 h-5 fill-amber-300 stroke-amber-500" />
+                          <Sun className="w-5 h-5 text-amber-500" fill="#fcd34d" />
                         </div>
                       ) : (
                         <div className="p-2 text-slate-500 rounded-xl">
@@ -1749,7 +1916,7 @@ export default function App() {
                     >
                       {iconStyle === "glow" ? (
                         <div className="p-2 bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 rounded-xl shadow-inner animate-pulse">
-                          <Moon className="w-5 h-5 fill-violet-300 stroke-violet-500" />
+                          <Moon className="w-5 h-5 text-indigo-400" fill="#a5b4fc" />
                         </div>
                       ) : (
                         <div className="p-2 text-slate-500 rounded-xl">
@@ -1765,7 +1932,7 @@ export default function App() {
                     >
                       {iconStyle === "glow" ? (
                         <div className="p-2 bg-sky-100 dark:bg-sky-950/60 text-sky-600 rounded-xl shadow-inner animate-pulse">
-                          <Monitor className="w-5 h-5 fill-sky-200 stroke-sky-400" />
+                          <Monitor className="w-5 h-5 text-emerald-400" fill="#6ee7b7" />
                         </div>
                       ) : (
                         <div className="p-2 text-slate-500 rounded-xl">
@@ -1820,7 +1987,7 @@ export default function App() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight font-display text-violet-905 dark:text-white">Admin System Inspections</h1>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-violet-905 dark:text-white">Admin System Inspections</h1>
                 <p className="text-xs text-slate-500">Monitor platform user registries, cascade resources clearings, or review database size specifications</p>
               </div>
               <button 
