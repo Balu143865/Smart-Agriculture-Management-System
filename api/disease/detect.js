@@ -114,7 +114,8 @@ Output EXACTLY this JSON structure. Ensure you synthesize highly realistic value
   "homeRemedies": ["Homemade remedy spray 1", "Homemade remedy spray 2"],
   "futurePreventionTips": ["Continuous tip 1", "Continuous tip 2"]
 }
-Return valid schema-constrained JSON directly.`;
+Return valid schema-constrained JSON directly.`
+    };
 
     const response = await client.models.generateContent({
       model: "gemini-3.5-flash",
