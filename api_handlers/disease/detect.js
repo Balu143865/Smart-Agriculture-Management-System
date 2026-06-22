@@ -184,7 +184,37 @@ Return valid schema-constrained JSON directly.`
     return res.status(200).json({ analysis: newLog, logged: newLog, demoMode: false });
 
   } catch (error) {
-    console.error("Gemini Vercel Image Detection Error:", error);
-    return res.status(500).json({ error: "Failed to process image: " + error.message });
+    console.error("Gemini Vercel Image Detection Error (falling back to mockup):", error);
+    const logId = "d_" + Math.random().toString(36).substring(2, 11);
+    const newLog = {
+      id: logId,
+      userId: userDecoded.id,
+      cropName: cropName || mockData.cropName,
+      diseaseName: mockData.diseaseName,
+      confidence: mockData.confidence,
+      treatment: mockData.treatmentMethods || [mockData.recommendations[0].productName],
+      severity: mockData.severity,
+      date: new Date().toISOString().split("T")[0],
+      imageUrl: image,
+
+      affectedPart: mockData.affectedPart,
+      description: mockData.description,
+      symptoms: mockData.symptoms,
+      causes: mockData.causes,
+      prevention: mockData.prevention,
+      treatmentMethods: mockData.treatmentMethods,
+      recommendations: mockData.recommendations,
+      organicAlternatives: mockData.organicAlternatives,
+      homeRemedies: mockData.homeRemedies,
+      futurePreventionTips: mockData.futurePreventionTips
+    };
+
+    try {
+      await db.addDiseaseLog(newLog);
+    } catch (saveErr) {
+      console.warn("Could not write fallback log to database:", saveErr);
+    }
+
+    return res.status(200).json({ analysis: newLog, logged: newLog, demoMode: true });
   }
 }

@@ -113,7 +113,39 @@ Ensure output is ONLY a valid JSON array, do not wrap in markdown quotes. Ensure
     const parsed = JSON.parse(response.text.trim());
     return res.status(200).json({ recommendations: parsed, demoMode: false });
   } catch (err) {
-    console.error("Gemini Vercel Crop Recommender Error:", err);
-    return res.status(500).json({ error: "Failed to generate recommendation from Gemini Model: " + err.message });
+    console.error("Gemini Vercel Crop Recommender Error (falling back to simulation):", err);
+    const mockResult = [
+      {
+        cropName: `${season === "Spring" ? "Sorghum Grain" : "Autumn Rye"}`,
+        suitabilityScore: 92,
+        variety: "Hybrid-88 Super Green",
+        reasoning: `Sufficiently optimized for ${soilType} soil. Requires warm daytime intervals around ${temperature}°C and tolerates ${rainfall}mm moisture zones beautifully. (Using fallback simulation)`,
+        idealPh: "6.2 - 6.8",
+        growthDuration: "110 days",
+        wateringFrequency: "Once every 5 days",
+        potentialYieldEstimate: "3.2 Tons per acre"
+      },
+      {
+        cropName: "Organic Pearl Millets",
+        suitabilityScore: 85,
+        variety: "Desert Gold",
+        reasoning: "Excellent resilience against dry spells. Sandy/clay ratios perform robustly, maintaining high nitrogen uptake and preventing soil crust lockouts. (Using fallback simulation)",
+        idealPh: "5.5 - 7.0",
+        growthDuration: "85 days",
+        wateringFrequency: "Low (once weekly)",
+        potentialYieldEstimate: "2.1 Tons per acre"
+      },
+      {
+        cropName: "Soybeans (Premium Bio-oil)",
+        suitabilityScore: 78,
+        variety: "Enlist E3",
+        reasoning: "Great companion rotation choice. Retains high structural organic matter metrics and fixing nitrogen nodules directly back to the loam layers. (Using fallback simulation)",
+        idealPh: "6.0 - 6.5",
+        growthDuration: "135 days",
+        wateringFrequency: "Moderate (twice weekly)",
+        potentialYieldEstimate: "1.8 Tons per acre"
+      }
+    ];
+    return res.status(200).json({ recommendations: mockResult, demoMode: true });
   }
 }

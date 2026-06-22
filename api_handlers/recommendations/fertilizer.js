@@ -98,7 +98,20 @@ Generate valid JSON solely. Ensure correct JSON format.`;
     const parsed = JSON.parse(response.text.trim());
     return res.status(200).json({ advice: parsed, demoMode: false });
   } catch (err) {
-    console.error("Gemini Vercel Fertilizer Recommender Error:", err);
-    return res.status(500).json({ error: "Failed to generate recommendation from Gemini Model: " + err.message });
+    console.error("Gemini Vercel Fertilizer Recommender Error (falling back to simulation):", err);
+    const mockResult = {
+      overallVerdict: `Your N-P-K metrics are moderately depleted. Nitrogen levels require organic supplementing to match targeted high yields of ${cropName}. (Using fallback simulation)`,
+      fertilizerType: "Custom Balanced NPK (19-19-19) combined with organic humic acids",
+      dosageRule: "Apply 120 lbs per acre during tillering, followed by 50 lbs topdress during vegetative bloom.",
+      waterSolubility: "High liquid water-solubility (ideal for drip fertigation)",
+      guidelines: [
+        "Mix the active NPK solution with clean water at 1:100 concentrations to shield rootlets.",
+        "Perform early morning application to minimize solar nitrogen volatilization.",
+        "Incorporate 10% organic cow-manure compost in rows to lift trace minerals (Zinc / Iron)."
+      ],
+      npkTargetRatio: "3-2-2 nitrogen heavy ratio",
+      soilPhAdjustment: `With a pH of ${soilPh}, trace metal uptake is optimal. No active limestone buffering is required at this window.`
+    };
+    return res.status(200).json({ advice: mockResult, demoMode: true });
   }
 }

@@ -1258,8 +1258,40 @@ Ensure output is ONLY a valid JSON array, do not wrap in markdown quotes. Ensure
       const parsed = JSON.parse(response.text.trim());
       res.json({ recommendations: parsed, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Crop API Error:", err);
-      res.status(500).json({ error: "Failed to generate recommendation from Gemini Model: " + err.message });
+      console.error("Gemini Crop API Error (falling back to simulation):", err);
+      const mockResult = [
+        {
+          cropName: `${season === "Spring" ? "Sorghum Grain" : "Autumn Rye"}`,
+          suitabilityScore: 92,
+          variety: "Hybrid-88 Super Green",
+          reasoning: `Sufficiently optimized for ${soilType} soil. Requires warm daytime intervals around ${temperature}°C and tolerates ${rainfall}mm moisture zones beautifully. (Using fallback simulation)`,
+          idealPh: "6.2 - 6.8",
+          growthDuration: "110 days",
+          wateringFrequency: "Once every 5 days",
+          potentialYieldEstimate: "3.2 Tons per acre"
+        },
+        {
+          cropName: "Organic Pearl Millets",
+          suitabilityScore: 85,
+          variety: "Desert Gold",
+          reasoning: "Excellent resilience against dry spells. Sandy/clay ratios perform robustly, maintaining high nitrogen uptake and preventing soil crust lockouts. (Using fallback simulation)",
+          idealPh: "5.5 - 7.0",
+          growthDuration: "85 days",
+          wateringFrequency: "Low (once weekly)",
+          potentialYieldEstimate: "2.1 Tons per acre"
+        },
+        {
+          cropName: "Soybeans (Premium Bio-oil)",
+          suitabilityScore: 78,
+          variety: "Enlist E3",
+          reasoning: "Great companion rotation choice. Retains high structural organic matter metrics and fixing nitrogen nodules directly back to the loam layers. (Using fallback simulation)",
+          idealPh: "6.0 - 6.5",
+          growthDuration: "135 days",
+          wateringFrequency: "Moderate (twice weekly)",
+          potentialYieldEstimate: "1.8 Tons per acre"
+        }
+      ];
+      res.json({ recommendations: mockResult, demoMode: true });
     }
   });
 
@@ -1346,8 +1378,21 @@ Generate valid JSON solely. Do not output surrounding markdown code blocks.`;
       const parsed = JSON.parse(response.text.trim());
       res.json({ advice: parsed, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Fertilizer Error:", err);
-      res.status(500).json({ error: "Failed to process soil report: " + err.message });
+      console.error("Gemini Fertilizer Error (falling back to simulation):", err);
+      const mockResult = {
+        overallVerdict: `Your N-P-K metrics are moderately depleted. Nitrogen levels require organic supplementing to match targeted high yields of ${cropName}. (Using fallback simulation)`,
+        fertilizerType: "Custom Balanced NPK (19-19-19) combined with organic humic acids",
+        dosageRule: "Apply 120 lbs per acre during tillering, followed by 50 lbs topdress during vegetative bloom.",
+        waterSolubility: "High liquid water-solubility (ideal for drip fertigation)",
+        guidelines: [
+          "Mix the active NPK solution with clean water at 1:100 concentrations to shield rootlets.",
+          "Perform early morning application to minimize solar nitrogen volatilization.",
+          "Incorporate 10% organic cow-manure compost in rows to lift trace minerals (Zinc / Iron)."
+        ],
+        npkTargetRatio: "3-2-2 nitrogen heavy ratio",
+        soilPhAdjustment: `With a pH of ${soilPh}, trace metal uptake is optimal. No active limestone buffering is required at this window.`
+      };
+      res.json({ advice: mockResult, demoMode: true });
     }
   });
 
@@ -1893,8 +1938,25 @@ Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
 
       res.json({ reply: response.text, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Disease Chatbot Error:", err);
-      res.status(500).json({ error: "Failed to query the AI botanical assistant: " + err.message });
+      console.error("Gemini Disease Chatbot Error (falling back to simulation):", err);
+      let responseMessage = "";
+      const msgLower = message.toLowerCase();
+      const diseaseName = diseaseContext?.diseaseName || "a crop disease";
+      const cropName = diseaseContext?.cropName || "your plants";
+
+      if (msgLower.includes("dose") || msgLower.includes("how much") || msgLower.includes("apply") || msgLower.includes("spraying")) {
+        responseMessage = `Regarding the treatments for **${diseaseName}** on **${cropName}**, they should be applied exactly as outlined in the recommendations card: dilute in clean water (for example, 2.5g of powder per Liter or 100ml per acre for systemics) and apply when wind is calm at dawn or dusk. Avoid intense afternoon sun to protect leaves from chemical leaf-scorch! (Fallback simulated response)`;
+      } else if (msgLower.includes("organic") || msgLower.includes("home") || msgLower.includes("natural")) {
+        responseMessage = `To handle **${diseaseName}** organically, I highly recommend spraying **Neem oil soap emulsified at 1% concentration** or using our **Baking soda recipe** (1 tbsp baking soda, 1 tsp horticultural oil, 1 tsp liquid hand soap in 1 gallon water). This forms a mechanical barrier preventing fungal spores from anchoring to leaf veins. (Fallback simulated response)`;
+      } else if (msgLower.includes("safe") || msgLower.includes("dangerous") || msgLower.includes("humans") || msgLower.includes("animal")) {
+        responseMessage = `Most fungicides targeted at **${diseaseName}** like Mancozeb have a post-spraying 'Pre-Harvest Interval' (PHI) of about 7-14 days. This means you must wait that long before eating crops. Always wash leaves and fruit thoroughly. Restrict cattle/livestock entry into sprayed zones for at least 72 hours. (Fallback simulated response)`;
+      } else if (msgLower.includes("weather") || msgLower.includes("climate") || msgLower.includes("rain") || msgLower.includes("wet")) {
+        responseMessage = `Yes! Leaf spots and rusts depend heavily on moisture. When rainfall or heavy dew persists, spores germinate in under 6 hours of standing leaf moisture. Ensure proper ground mulching and drainage channels to prevent splashing soils from contaminating lower crops! (Fallback simulated response)`;
+      } else {
+        responseMessage = `I'm here to support you with **${diseaseName}** affecting **${cropName}**! You can ask me how to spray chemical solutions, configure organic Alternatives, manage fertilization balances, or check weather risk indices. Is there a specific recommendation or symptom you'd like me to explain further? (Fallback simulated response)`;
+      }
+
+      res.json({ reply: responseMessage, demoMode: true });
     }
   });
 
