@@ -955,7 +955,7 @@ export default function AIDiseaseDetector({ authToken }: AIDiseaseDetectorProps)
                 )}
 
                 {/* Primary Diagnostic Info Board */}
-                <div className="bg-white/75 dark:bg-slate-900/80 backdrop-blur-md border border-slate-250 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="bg-white/75 dark:bg-slate-900/80 backdrop-blur-md border-2 border-slate-100/90 dark:border-slate-800/80 rounded-[28px] p-6 shadow-md space-y-6">
                   {isDemo && (
                     <div className="p-3 bg-teal-50 text-teal-950 border border-teal-100 dark:bg-teal-950/25 dark:text-teal-200 dark:border-teal-950 text-[11px] rounded-xl flex items-center gap-2">
                       <Cpu className="w-4 h-4 text-teal-650 shrink-0" />

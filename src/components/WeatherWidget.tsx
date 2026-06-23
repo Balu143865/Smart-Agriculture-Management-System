@@ -15,6 +15,15 @@ import {
 
 export default function WeatherWidget() {
   const [selectedCity, setSelectedCity] = useState("Central Valley, CA");
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+
+  // Helper to get dynamic date string relative to today
+  const getForecastDateString = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return `${dayNames[d.getDay()]} ${d.getDate()}`;
+  };
 
   // Mock robust forecast data
   const weatherData: { [key: string]: any } = {
@@ -184,19 +193,27 @@ export default function WeatherWidget() {
       <div className="mt-8">
         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono mb-4">7 Day Micro-Climate Horizon</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-          {active.forecast.map((fc: any, i: number) => (
-            <div 
-              key={i} 
-              className={`p-3 bg-slate-50 dark:bg-slate-800/40 border rounded-2xl text-center space-y-1 ${
-                i === 0 ? "border-emerald-650 dark:border-emerald-500 shadow-md ring-1 ring-emerald-500/20" : "border-slate-100 dark:border-slate-800"
-              }`}
-            >
-              <div className="text-[10px] uppercase font-bold text-slate-400">{fc.day}</div>
-              <div className="py-2 flex justify-center">{fc.icon}</div>
-              <div className="text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">{fc.temp}</div>
-              <div className="text-[10px] text-slate-500 font-semibold">{fc.cond}</div>
-            </div>
-          ))}
+          {active.forecast.map((fc: any, i: number) => {
+            const isSelected = i === selectedDayIndex;
+            return (
+              <div 
+                key={i} 
+                onClick={() => setSelectedDayIndex(i)}
+                className={`p-3 border rounded-2xl text-center space-y-1 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+                  isSelected 
+                    ? "bg-emerald-50/70 border-emerald-650 dark:bg-emerald-950/20 dark:border-emerald-500 shadow-md ring-1 ring-emerald-500/20 scale-[1.03]" 
+                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/70"
+                }`}
+              >
+                <div className="text-[10px] uppercase font-bold text-slate-400">
+                  {getForecastDateString(i)}
+                </div>
+                <div className="py-2 flex justify-center">{fc.icon}</div>
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">{fc.temp}</div>
+                <div className="text-[10px] text-slate-500 font-semibold">{fc.cond}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

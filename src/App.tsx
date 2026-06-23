@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Sprout, 
   MapPin, 
@@ -34,7 +34,8 @@ import {
   Settings,
   Sparkles,
   Palette,
-  Laptop
+  Laptop,
+  FileSpreadsheet
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -161,6 +162,8 @@ import AIRecommenders from "./components/AIRecommenders";
 import AIDiseaseDetector from "./components/AIDiseaseDetector";
 import MarketPriceBoard from "./components/MarketPriceBoard";
 import AnalyticsReports from "./components/AnalyticsReports";
+import FarmMapComponent from "./components/FarmMapComponent";
+import OperationsCalendar from "./components/OperationsCalendar";
 
 // Types
 import { User as UserType, Farm, Crop, Transaction } from "./types";
@@ -181,6 +184,31 @@ import {
   getAdminSystemStats, 
   updateProfileFlow 
 } from "./lib/supabase";
+
+const overviewContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const overviewItemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.99 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 150,
+      damping: 20,
+    },
+  },
+};
 
 export default function App() {
   // Navigation & Authentication states
@@ -211,6 +239,7 @@ export default function App() {
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingOverlay, setLoadingOverlay] = useState(false);
+  const isInitialMount = useRef(true);
   
   // Create state models
   const [farmName, setFarmName] = useState("");
@@ -263,9 +292,22 @@ export default function App() {
     return `w-full px-3 py-2 bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold focus:outline-none focus:ring-4 transition-all duration-200 ${ringClass}`;
   };
 
+  const changeThemeMode = (mode: "light" | "dark" | "system", e?: React.MouseEvent) => {
+    if (e && typeof document !== "undefined") {
+      const x = e.clientX || window.innerWidth / 2;
+      const y = e.clientY || window.innerHeight / 2;
+      document.documentElement.style.setProperty("--click-x", `${x}px`);
+      document.documentElement.style.setProperty("--click-y", `${y}px`);
+    } else if (typeof document !== "undefined") {
+      document.documentElement.style.setProperty("--click-x", "50%");
+      document.documentElement.style.setProperty("--click-y", "50%");
+    }
+    setThemeMode(mode);
+  };
+
   // Dark Node / System Theme Mode Apply
   useEffect(() => {
-    const applyTheme = () => {
+    const applyTheme = (animate = false) => {
       let isDark = false;
       if (themeMode === "dark") {
         isDark = true;
@@ -276,19 +318,40 @@ export default function App() {
         isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       }
 
-      if (isDark) {
-        document.documentElement.classList.add("dark");
+      const updateDOM = () => {
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      };
+
+      if (animate && typeof document !== "undefined" && (document as any).startViewTransition) {
+        try {
+          const transition = (document as any).startViewTransition(updateDOM);
+          if (transition) {
+            if (transition.ready) transition.ready.catch(() => {});
+            if (transition.finished) transition.finished.catch(() => {});
+          }
+        } catch (err) {
+          updateDOM();
+        }
       } else {
-        document.documentElement.classList.remove("dark");
+        updateDOM();
       }
     };
 
-    applyTheme();
+    if (isInitialMount.current) {
+      applyTheme(false);
+      isInitialMount.current = false;
+    } else {
+      applyTheme(true);
+    }
     localStorage.setItem("theme-mode", themeMode);
 
     if (themeMode === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const listener = () => applyTheme();
+      const listener = () => applyTheme(true);
       mediaQuery.addEventListener("change", listener);
       return () => mediaQuery.removeEventListener("change", listener);
     }
@@ -517,6 +580,49 @@ export default function App() {
     }
   };
 
+  const handleExportLedgerCsv = () => {
+    setErrorBanner("");
+    if (transactions.length === 0) {
+      setErrorBanner("No transactions found in this ledger to export.");
+      return;
+    }
+
+    try {
+      // Generate CSV Content
+      const csvHeaders = ["ID", "Farm ID", "Ground Name", "Date", "Type", "Category", "Amount ($)", "Description", "Created At"].join(",");
+      const rows = transactions.map((t) => {
+        const farmLabel = farms.find(f => f.id === t.farmId)?.name || "Main Valley";
+        return [
+          `"${t.id}"`,
+          `"${t.farmId}"`,
+          `"${farmLabel.replace(/"/g, '""')}"`,
+          `"${t.date}"`,
+          `"${t.type}"`,
+          `"${t.category.replace(/"/g, '""')}"`,
+          t.amount,
+          `"${(t.description || "").replace(/"/g, '""')}"`,
+          `"${t.createdAt}"`
+        ].join(",");
+      });
+
+      const csvString = [csvHeaders, ...rows].join("\n");
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `agri_ledger_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setSuccessBanner("✓ Financial ledger CSV downloaded successfully!");
+      setTimeout(() => setSuccessBanner(""), 4000);
+    } catch (err: any) {
+      setErrorBanner(err.message || "Something went wrong during CSV generation.");
+    }
+  };
+
   // Admin users controls
   const handleToggleUserAdmin = async (id: string, currentRole: string) => {
     const nextRole = currentRole === "admin" ? "farmer" : "admin";
@@ -633,19 +739,19 @@ export default function App() {
               <span className="text-xs text-white/70 font-semibold font-sans">Theme Swatch:</span>
               <div className="flex items-center gap-1">
                 <button 
-                  onClick={() => setThemeMode("light")}
+                  onClick={(e) => changeThemeMode("light", e)}
                   className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "light" ? "bg-white/20 text-white" : "text-white/40"}`}
                 >
                   <Sun className="w-3.5 h-3.5" />
                 </button>
                 <button 
-                  onClick={() => setThemeMode("dark")}
+                  onClick={(e) => changeThemeMode("dark", e)}
                   className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "dark" ? "bg-white/20 text-white" : "text-white/40"}`}
                 >
                   <Moon className="w-3.5 h-3.5" />
                 </button>
                 <button 
-                  onClick={() => setThemeMode("system")}
+                  onClick={(e) => changeThemeMode("system", e)}
                   className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "system" ? "bg-white/20 text-white" : "text-white/40"}`}
                 >
                   <Monitor className="w-3.5 h-3.5" />
@@ -781,21 +887,21 @@ export default function App() {
             {/* Quick theme switcher dropdown / toggle */}
             <div className="flex items-center gap-1 p-0.5 bg-black/20 rounded-xl border border-white/5 shadow-inner">
               <button 
-                onClick={() => setThemeMode("light")}
+                onClick={(e) => changeThemeMode("light", e)}
                 title="Light Mode"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "light" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
                 {iconStyle === "glow" ? <Sun className="w-3.5 h-3.5 text-amber-400" fill="#fcd34d" /> : <Sun className="w-3.5 h-3.5 stroke-1 text-white" />}
               </button>
               <button 
-                onClick={() => setThemeMode("dark")}
+                onClick={(e) => changeThemeMode("dark", e)}
                 title="Dark Mode"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "dark" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
                 {iconStyle === "glow" ? <Moon className="w-3.5 h-3.5 text-indigo-300" fill="#a5b4fc" /> : <Moon className="w-3.5 h-3.5 stroke-1 text-white" />}
               </button>
               <button 
-                onClick={() => setThemeMode("system")}
+                onClick={(e) => changeThemeMode("system", e)}
                 title="System Preferences"
                 className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "system" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
               >
@@ -937,12 +1043,12 @@ export default function App() {
             ------------------------------------- */}
         {activeTab === "overview" && (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
-            animate={{ opacity: 1, scale: 1, y: 0 }} 
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            variants={overviewContainerVariants}
+            initial="hidden"
+            animate="visible"
             className="space-y-6"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <motion.div variants={overviewItemVariants} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-slate-900 dark:text-white">Operations Command Center</h1>
                 <p className="text-xs text-slate-500">Live summary of farm inputs, NPK ratios, and current weather alerts</p>
@@ -953,73 +1059,102 @@ export default function App() {
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Sync ground sensors
               </button>
-            </div>
+            </motion.div>
 
             {/* Quick weather status first */}
-            <WeatherWidget />
+            <motion.div variants={overviewItemVariants}>
+              <WeatherWidget />
+            </motion.div>
 
             {/* Micro analytics reports widget block */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <motion.div 
-                whileHover={{ y: -5, scale: 1.01 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white dark:bg-slate-900 border border-slate-105 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+                variants={overviewItemVariants}
+                whileHover={{ y: -4, scale: 1.015 }}
+                className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 rounded-[28px] p-6 shadow-sm hover:shadow-lg hover:border-emerald-500/20 dark:hover:border-emerald-500/10 flex flex-col justify-between transition-all duration-300"
               >
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">Quick farm assets</span>
-                  <div className="text-4xl font-extrabold text-slate-900 dark:text-white mt-1 pt-1 font-mono">{farms.length}</div>
-                  <p className="text-xs text-slate-500 mt-2">Active properties managed across California basin</p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Quick farm assets</span>
+                    <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{farms.length}</div>
+                    <p className="text-xs text-slate-400 font-medium mt-1.5">Active field properties mapped across California basins</p>
+                  </div>
                 </div>
-                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-705 dark:text-slate-300">Acreage:</span>
-                  <span className="text-xs font-bold font-mono text-emerald-600">{farms.reduce((a, b) => a + b.size, 0)} Total Acres</span>
+                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500">Continuous Area:</span>
+                  <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">{farms.reduce((a, b) => a + b.size, 0)} Total Acres</span>
                 </div>
               </motion.div>
 
               <motion.div 
-                whileHover={{ y: -5, scale: 1.01 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+                variants={overviewItemVariants}
+                whileHover={{ y: -4, scale: 1.015 }}
+                className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 rounded-[28px] p-6 shadow-sm hover:shadow-lg hover:border-emerald-500/20 dark:hover:border-emerald-500/10 flex flex-col justify-between transition-all duration-300"
               >
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">Active Crops</span>
-                  <div className="text-4xl font-extrabold text-slate-900 dark:text-emerald-555 mt-1 pt-1 font-mono">
-                    {crops.filter(c => c.status === "active").length}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Active Crops</span>
+                    <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                      <Sprout className="w-5 h-5" />
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">Vegetative and fruit timelines currently sowed</p>
+                  <div>
+                    <div className="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">
+                      {crops.filter(c => c.status === "active").length}
+                    </div>
+                    <p className="text-xs text-slate-400 font-medium mt-1.5">Vegetative crop timelines currently in active growth</p>
+                  </div>
                 </div>
-                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-705 dark:text-slate-300">Harvests reaped:</span>
-                  <span className="text-xs font-bold font-mono text-emerald-600">{crops.filter(c => c.status === "harvested").length} timeline nodes</span>
+                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500">Harvests Reaped:</span>
+                  <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">{crops.filter(c => c.status === "harvested").length} cycles finished</span>
                 </div>
               </motion.div>
 
               <motion.div 
-                whileHover={{ y: -5, scale: 1.01 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+                variants={overviewItemVariants}
+                whileHover={{ y: -4, scale: 1.015 }}
+                className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 rounded-[28px] p-6 shadow-sm hover:shadow-lg hover:border-emerald-500/20 dark:hover:border-emerald-500/10 flex flex-col justify-between transition-all duration-300"
               >
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">Financial Net balance</span>
-                  <div className="text-4xl font-extrabold text-emerald-600 mt-1 pt-1 font-mono">
-                    ${(
-                      transactions.filter(t => t.type === "income").reduce((a, b) => a + b.amount, 0) -
-                      transactions.filter(t => t.type === "expense").reduce((a, b) => a + b.amount, 0)
-                    ).toLocaleString()}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Financial Net balance</span>
+                    <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">Combined profits and water subsidies ledger</p>
+                  <div>
+                    <div className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+                      ${(
+                        transactions.filter(t => t.type === "income").reduce((a, b) => a + b.amount, 0) -
+                        transactions.filter(t => t.type === "expense").reduce((a, b) => a + b.amount, 0)
+                      ).toLocaleString()}
+                    </div>
+                    <p className="text-xs text-slate-400 font-medium mt-1.5">Profits and water subsidies ledger balance</p>
+                  </div>
                 </div>
-                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-705 dark:text-slate-300">Foliar inputs budget:</span>
-                  <span className="text-xs font-bold font-mono text-rose-505">-${transactions.filter(t => t.type === "expense").reduce((a, b) => a + b.amount, 0).toLocaleString()}</span>
+                <div className="pt-4 border-t border-slate-50 dark:border-slate-800/60 mt-4 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500">Operation Expenses:</span>
+                  <span className="font-bold font-mono text-rose-500">-${transactions.filter(t => t.type === "expense").reduce((a, b) => a + b.amount, 0).toLocaleString()}</span>
                 </div>
               </motion.div>
 
             </div>
 
+            {/* Interactive Scheduler & Farm Calendar View */}
+            <motion.div variants={overviewItemVariants}>
+              <OperationsCalendar farms={farms} crops={crops} cTheme={cTheme} />
+            </motion.div>
+
             {/* Quick alert and guide triggers */}
             <motion.div 
+              variants={overviewItemVariants}
               whileHover={{ scale: 1.005 }}
               className={`border rounded-3xl p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center transition-all ${cTheme.bgAccent} ${cTheme.borderAccent}`}
             >
@@ -1058,6 +1193,9 @@ export default function App() {
                 <p className="text-xs text-slate-500 font-mono">Total tracked crop matrices: {farms.length} distinct fields</p>
               </div>
             </div>
+
+            {/* Interactive spatial mappings visual block */}
+            <FarmMapComponent farms={farms} crops={crops} />
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
               
@@ -1163,19 +1301,19 @@ export default function App() {
                       key={f.id}
                       initial={{ opacity: 0, scale: 0.95, y: 15 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.05 }}
-                      whileHover={{ scale: 1.015, y: -2 }}
-                      className="bg-white dark:bg-slate-900 border border-slate-101 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden transition-all duration-200"
+                      transition={{ duration: 0.45, delay: i * 0.05, type: "spring", stiffness: 220, damping: 22 }}
+                      whileHover={{ scale: 1.02, y: -4 }}
+                      className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-lg space-y-4 relative overflow-hidden transition-all duration-300"
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className={`text-[10px] uppercase font-bold tracking-wider font-mono ${cTheme.text}`}>Location: {f.location}</span>
-                          <h4 className="text-lg font-bold text-slate-905 dark:text-white font-display select-all leading-snug">{f.name}</h4>
+                          <span className={`text-[10px] uppercase font-mono tracking-widest font-extrabold ${cTheme.text}`}>Zone: {f.location}</span>
+                          <h4 className="text-lg font-bold text-slate-905 dark:text-white font-display select-all leading-snug pr-8">{f.name}</h4>
                         </div>
                         
                         <button 
                           onClick={() => handleDeleteFarm(f.id)}
-                          className="p-1 px-2.5 bg-rose-50 text-rose-800 dark:bg-rose-950/20 dark:text-rose-350 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-rose-105 transition-colors"
+                          className="p-1 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 dark:bg-rose-950/20 dark:text-rose-350 text-[10px] font-bold rounded-lg cursor-pointer transition-colors"
                         >
                           Purge
                         </button>
@@ -1548,7 +1686,22 @@ export default function App() {
 
               {/* Transactions Ledger list */}
               <div className="xl:col-span-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
-                <h3 className="text-base font-bold font-display">Ledger transaction ledger sheet</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold font-display">Ledger transaction ledger sheet</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Chronological record of entries and budget balances</p>
+                  </div>
+                  {transactions.length > 0 && (
+                    <button 
+                      type="button"
+                      onClick={handleExportLedgerCsv}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/55 text-emerald-800 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/40 text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-650 dark:text-emerald-400" />
+                      <span>Export Ledger CSV</span>
+                    </button>
+                  )}
+                </div>
 
                 {transactions.length === 0 ? (
                   <p className="text-xs text-slate-400 italic font-mono pt-4">No budgets logged yet. Register ground finances.</p>
@@ -1819,7 +1972,7 @@ export default function App() {
 
                   <div className="grid grid-cols-3 gap-2">
                     <button
-                      onClick={() => setThemeMode("light")}
+                      onClick={(e) => changeThemeMode("light", e)}
                       className={`p-3 rounded-2xl border flex flex-col items-center gap-2 transition-all cursor-pointer ${themeMode === "light" ? `border-slate-900 bg-slate-50 dark:border-slate-100 dark:bg-slate-800` : "border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"}`}
                     >
                       {iconStyle === "glow" ? (
@@ -1835,7 +1988,7 @@ export default function App() {
                     </button>
 
                     <button
-                      onClick={() => setThemeMode("dark")}
+                      onClick={(e) => changeThemeMode("dark", e)}
                       className={`p-3 rounded-2xl border flex flex-col items-center gap-2 transition-all cursor-pointer ${themeMode === "dark" ? `border-slate-900 bg-slate-50 dark:border-slate-100 dark:bg-slate-800` : "border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"}`}
                     >
                       {iconStyle === "glow" ? (
@@ -1851,7 +2004,7 @@ export default function App() {
                     </button>
 
                     <button
-                      onClick={() => setThemeMode("system")}
+                      onClick={(e) => changeThemeMode("system", e)}
                       className={`p-3 rounded-2xl border flex flex-col items-center gap-2 transition-all cursor-pointer ${themeMode === "system" ? `border-slate-900 bg-slate-50 dark:border-slate-100 dark:bg-slate-800` : "border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"}`}
                     >
                       {iconStyle === "glow" ? (

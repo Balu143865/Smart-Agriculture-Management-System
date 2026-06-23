@@ -244,37 +244,37 @@ export default function AIRecommenders({ authToken, defaultTab = "crop" }: AIRec
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, delay: idx * 0.08, type: "spring", stiffness: 220, damping: 22 }}
-                    whileHover={{ y: -4, scale: 1.015 }}
-                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden group hover:shadow-md transition-all"
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-lg space-y-4 relative overflow-hidden group transition-all duration-300"
                   >
-                    <div className="absolute top-0 right-0 p-3 bg-emerald-100/50 dark:bg-emerald-950/40 rounded-bl-3xl text-emerald-800 dark:text-emerald-300 text-xs font-bold font-mono">
+                    <div className="absolute top-0 right-0 p-3 bg-emerald-100/40 dark:bg-emerald-950/40 rounded-bl-3xl text-emerald-800 dark:text-emerald-300 text-xs font-mono font-extrabold">
                       Score: {crop.suitabilityScore}%
                     </div>
 
-                    <div className="space-y-1 pr-14">
-                      <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">{crop.variety}</span>
+                    <div className="space-y-1 pr-14 pt-1">
+                      <span className="text-[10px] font-mono tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 block uppercase">{crop.variety}</span>
                       <h4 className="text-lg font-bold text-slate-900 dark:text-white font-display leading-tight">{crop.cropName}</h4>
                     </div>
 
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-1 border-t border-slate-50 dark:border-slate-800/60 line-clamp-4 hover:line-clamp-none transition-all">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-3 border-t border-slate-100 dark:border-slate-800/60 line-clamp-4 hover:line-clamp-none transition-all">
                       {crop.reasoning}
                     </p>
 
-                    <div className="space-y-2 pt-2 text-[11px] font-mono border-t border-slate-50 dark:border-slate-800/60 text-slate-500 dark:text-slate-400">
-                      <div className="flex justify-between">
+                    <div className="space-y-2 pt-3 text-[11px] font-mono border-t border-slate-100 dark:border-slate-800/60 text-slate-500 dark:text-slate-400">
+                      <div className="flex justify-between items-center pb-1 border-b border-slate-50/50 dark:border-slate-800/30">
                         <span>Optimal Range:</span>
                         <span className="font-bold text-slate-700 dark:text-slate-300">pH {crop.idealPh}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center pb-1 border-b border-slate-50/50 dark:border-slate-800/30">
                         <span>Growth Cycle:</span>
                         <span className="font-bold text-slate-700 dark:text-slate-300">{crop.growthDuration}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center pb-1 border-b border-slate-50/50 dark:border-slate-800/30">
                         <span>Irrigation:</span>
                         <span className="font-bold text-slate-700 dark:text-slate-300">{crop.wateringFrequency}</span>
                       </div>
                       {crop.potentialYieldEstimate && (
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <span>Est. Yield:</span>
                           <span className="font-bold text-slate-700 dark:text-slate-300">{crop.potentialYieldEstimate}</span>
                         </div>
@@ -415,29 +415,29 @@ export default function AIRecommenders({ authToken, defaultTab = "crop" }: AIRec
                 initial={{ opacity: 0, scale: 0.98, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.45, type: "spring", stiffness: 220, damping: 22 }}
-                className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6"
+                className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 rounded-[28px] p-6 shadow-md space-y-6"
               >
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-50 dark:border-slate-800/60 pb-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-slate-100 dark:border-slate-800/60 pb-5">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Recommended Material</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-white capitalize">{fertilizerAdvice.fertilizerType}</span>
+                    <span className="text-[10px] font-mono tracking-wider font-extrabold text-slate-400 uppercase block">Recommended Material</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{fertilizerAdvice.fertilizerType}</span>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block flex items-center gap-1">NPK balance target ratio</span>
+                    <span className="text-[10px] font-mono tracking-wider font-extrabold text-slate-400 uppercase block flex items-center gap-1">NPK balance target ratio</span>
                     <span className="text-sm font-bold text-emerald-600 font-mono">{fertilizerAdvice.npkTargetRatio || "Auto NPK Balance"}</span>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Estimated Dosage Rule</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-white">{fertilizerAdvice.dosageRule}</span>
+                    <span className="text-[10px] font-mono tracking-wider font-extrabold text-slate-400 uppercase block">Estimated Dosage Rule</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white font-mono">{fertilizerAdvice.dosageRule}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">Soil Chemist Verdict</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed bg-slate-50 dark:bg-slate-800/45 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border-2 border-slate-100/90 dark:border-slate-800/80">
                     {fertilizerAdvice.overallVerdict}
                   </p>
                 </div>

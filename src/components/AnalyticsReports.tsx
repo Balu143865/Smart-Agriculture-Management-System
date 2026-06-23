@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import { 
   BarChart, Bar, 
   LineChart, Line, 
@@ -92,6 +93,20 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
         value
       }));
 
+      // Yield performance: only include crops that are harvested or have an actual yield
+      const harvestedCrops = cropsList.filter(c => c.status === "harvested" || (c.actualYield !== undefined && Number(c.actualYield) > 0));
+
+      const yieldPerformanceChart = harvestedCrops.map(c => ({
+        crop: c.name,
+        variety: c.variety || "Standard",
+        cropLabel: `${c.name} (${c.variety || "Standard"})`,
+        expected: Number(c.expectedYield) || 0,
+        actual: Number(c.actualYield) || 0,
+        percentAchieved: Number(c.expectedYield) > 0 
+          ? Math.round(((Number(c.actualYield) || 0) / Number(c.expectedYield)) * 100) 
+          : 100
+      }));
+
       setAnalytics({
         summary: {
           totalIncome,
@@ -104,7 +119,8 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
         },
         financialChart,
         cropYields,
-        expenseCategoryChart
+        expenseCategoryChart,
+        yieldPerformanceChart
       });
     } catch (err: any) {
       setErrorHeader(err.message || "Failed to load reports matrix");
@@ -668,43 +684,67 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
 
   if (!analytics) return null;
 
-  const { summary, financialChart, cropYields, expenseCategoryChart } = analytics;
+  const { summary, financialChart, cropYields, expenseCategoryChart, yieldPerformanceChart } = analytics;
 
   return (
     <div className="space-y-6">
       
       {/* 1. Metric summary rows */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-105 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">Gross Income Ledger</span>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">${summary.totalIncome.toLocaleString()}</div>
-          <p className="text-[10px] text-emerald-600 font-semibold font-mono">✓ Ledger balanced</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, type: "spring", stiffness: 220, damping: 22 }}
+          whileHover={{ y: -4, scale: 1.025 }}
+          className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-md space-y-1 transition-all duration-350"
+        >
+          <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Gross Income Ledger</span>
+          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">${summary.totalIncome.toLocaleString()}</div>
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold flex items-center gap-1">● Ledger balanced</p>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-105 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">Operating Expenses</span>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-rose-450 font-mono">${summary.totalExpenses.toLocaleString()}</div>
-          <p className="text-[10px] text-slate-400 font-mono">Seeds, fertilizer, drip updates</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, delay: 0.05, type: "spring", stiffness: 220, damping: 22 }}
+          whileHover={{ y: -4, scale: 1.025 }}
+          className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-md space-y-1 transition-all duration-350"
+        >
+          <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Operating Expenses</span>
+          <div className="text-2xl font-extrabold text-slate-900 dark:text-rose-400 font-mono tracking-tight">${summary.totalExpenses.toLocaleString()}</div>
+          <p className="text-[10px] text-slate-400 font-mono font-bold">Seeds, fertilizer, drip updates</p>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-105 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">Net Profit Margins</span>
-          <div className={`text-2xl font-extrabold font-mono ${summary.netProfit >= 0 ? "text-emerald-700 dark:text-emerald-450" : "text-rose-700"}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, delay: 0.1, type: "spring", stiffness: 220, damping: 22 }}
+          whileHover={{ y: -4, scale: 1.025 }}
+          className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-md space-y-1 transition-all duration-350"
+        >
+          <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Net Profit Margins</span>
+          <div className={`text-2xl font-extrabold font-mono tracking-tight ${summary.netProfit >= 0 ? "text-emerald-600 dark:text-emerald-450" : "text-rose-600"}`}>
             ${summary.netProfit.toLocaleString()}
           </div>
-          <p className="text-[10px] text-slate-400 font-mono">
+          <p className="text-[10px] text-slate-400 font-mono font-bold">
             {summary.totalExpenses > 0 
-              ? `ROI: +${((summary.netProfit / summary.totalExpenses) * 100).toFixed(0)}% metrics` 
+              ? `ROI: +${((summary.netProfit / summary.totalExpenses) * 100).toFixed(0)}% return` 
               : "No expenses logged"
             }
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-105 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">Platform Assets</span>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">{summary.totalFarms} Farms</div>
-          <p className="text-[10px] text-slate-400 font-mono">{summary.totalCrops} Registered Crop Timelines</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, delay: 0.15, type: "spring", stiffness: 220, damping: 22 }}
+          whileHover={{ y: -4, scale: 1.025 }}
+          className="bg-white dark:bg-slate-900 border-2 border-slate-100/90 dark:border-slate-800/80 hover:border-emerald-500/20 dark:hover:border-emerald-500/10 rounded-[28px] p-5 shadow-sm hover:shadow-md space-y-1 transition-all duration-350"
+        >
+          <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Platform Assets</span>
+          <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{summary.totalFarms} Farms</div>
+          <p className="text-[10px] text-slate-400 font-mono font-bold">{summary.totalCrops} Active Crop Timelines</p>
+        </motion.div>
       </div>
 
       {/* 2. Primary Charts Grid */}
@@ -861,6 +901,48 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
           </div>
         </div>
 
+      </div>
+
+      {/* Yield Forecast vs Actual Line chart */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-101 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 font-mono">Harvested Crop Yield Performance Benchmark</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Line-by-line comparison of expected harvest targets against actual achieved yields to evaluate rotation efficiency</p>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">Weight in Kilograms (kg)</span>
+        </div>
+
+        <div className="h-80 w-full text-xs font-mono">
+          {yieldPerformanceChart.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full p-12 text-slate-400">
+              <p className="italic text-center">No harvested crop yield logs found on this account yet.</p>
+              <p className="text-[11px] text-slate-550 dark:text-slate-500 text-center max-w-md mt-1">Mark a crop as 'Harvested' in the Farm Registries tab and record its actual yield to see performance benchmarks.</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={yieldPerformanceChart} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:opacity-10" />
+                <XAxis dataKey="cropLabel" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "none", color: "#fff" }}
+                  formatter={(value: any, name: any, props: any) => {
+                    if (name === "Forecast Yield (kg)" || name === "Actual Yield (kg)") {
+                      const payload = props.payload;
+                      const extra = name === "Actual Yield (kg)" ? ` (${payload.percentAchieved}% of Target)` : '';
+                      return [`${value.toLocaleString()} kg${extra}`, name];
+                    }
+                    return [value, name];
+                  }}
+                />
+                <Legend verticalAlign="top" height={36} />
+                <Line type="monotone" dataKey="expected" name="Forecast Yield (kg)" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="actual" name="Actual Yield (kg)" stroke="#10b981" strokeWidth={3} activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
 
     </div>

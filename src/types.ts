@@ -168,4 +168,10 @@ export interface AnalyticsData {
     name: string;
     value: number;
   }>;
+  yieldPerformanceChart: Array<{
+    date: string;
+    crop: string;
+    expected: number;
+    actual: number | null;
+  }>;
 }

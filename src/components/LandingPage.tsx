@@ -19,7 +19,8 @@ import {
   Sparkles,
   Activity,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  Linkedin
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -27,6 +28,31 @@ interface LandingPageProps {
   onGetStarted: () => void;
   onLoginClick: () => void;
 }
+
+const suiteContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const suiteItemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.96 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 16,
+    },
+  },
+};
 
 export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -531,29 +557,47 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
       {/* 3. Features Grid */}
       <section id="features" className="py-20 bg-white dark:bg-slate-900 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-120px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-center max-w-3xl mx-auto space-y-4"
+          >
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-display">
               A Complete Farming Suite
             </h2>
             <p className="text-base text-slate-600 dark:text-slate-350">
               Integrate advanced visual analysis with budget tools to take control of crop lifecycle management.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div 
+            variants={suiteContainerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
             {features.map((feat, idx) => (
-              <div 
+              <motion.div 
                 key={idx} 
-                className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all hover:-translate-y-1 shadow-sm"
+                variants={suiteItemVariants}
+                whileHover={{ 
+                  y: -8, 
+                  scale: 1.02,
+                  boxShadow: "0 20px 25px -5px rgba(16, 185, 129, 0.08)"
+                }}
+                className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm"
               >
                 <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 rounded-xl flex items-center justify-center mb-5">
                   {feat.icon}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 font-display">{feat.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{feat.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -561,7 +605,13 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
       <section id="about" className="py-20 bg-slate-50 dark:bg-slate-950 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-5 relative">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, type: "spring", stiffness: 100, damping: 15 }}
+              className="lg:col-span-5 relative"
+            >
               <div className="relative aspect-auto min-h-[380px] sm:min-h-[400px] lg:aspect-square max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 bg-emerald-800 text-white p-6 sm:p-8 flex flex-col justify-between">
                 <div className="space-y-4">
                   <Sprout className="w-12 h-12 text-emerald-300" />
@@ -579,9 +629,15 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="lg:col-span-7 space-y-6 text-slate-700 dark:text-slate-300">
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, type: "spring", stiffness: 100, damping: 15, delay: 0.1 }}
+              className="lg:col-span-7 space-y-6 text-slate-700 dark:text-slate-300"
+            >
               <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white font-display">
                 Agronomic Intelligence Made Simple
               </h2>
@@ -609,7 +665,7 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -646,16 +702,16 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
             </p>
             
             <div className="space-y-4 text-slate-700 dark:text-slate-300 text-sm">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-emerald-600" />
-                <span>One Infinite Sprout Center, Agriculture District, CA</span>
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <span>Macherla, Palnadu, AP - 522426</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-emerald-600" />
-                <span>+1 (555) 0192 (Mon-Fri 8am-6pm)</span>
+                <Phone className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>+91 6304045279</span>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-emerald-600" />
+                <Mail className="w-5 h-5 text-emerald-600 shrink-0" />
                 <span>support@agrismart.corp</span>
               </div>
             </div>
@@ -717,30 +773,108 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
       </section>
 
       {/* 7. Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
-          <div>
-            <div className="flex items-center justify-center md:justify-start gap-2 text-white mb-3">
-              <Sprout className="w-6 h-6 text-emerald-400" />
-              <span className="text-lg font-bold">AgriSmart Systems</span>
+      <footer className="bg-slate-950 text-slate-350 py-16 border-t border-slate-800 relative overflow-hidden">
+        {/* Subtle decorative mesh background */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-slate-800/80">
+            
+            {/* Column 1: Brand info */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-white">
+                <div className="p-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                  <Sprout className="w-5 h-5 text-emerald-400 animate-pulse" />
+                </div>
+                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">AgriSmart Systems</span>
+              </div>
+              <p className="text-sm text-slate-400 leading-relaxed font-sans">
+                Empowering modern agriculture with cutting-edge visual diagnostics, crop intelligence, and precise financial ledger tools.
+              </p>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Delivering high-accuracy machine learning predictions and deep agricultural diagnostics for modern farmers around the globe.
-            </p>
+
+            {/* Column 2: Representative Contact */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Contact Details</h4>
+              <ul className="space-y-3 text-sm text-slate-400">
+                <li className="flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>Macherla, Palnadu, AP - 522426</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a href="tel:+916304045279" className="hover:text-emerald-400 transition-colors">+91 6304045279</a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a href="mailto:balunaikbanavath662@gmail.com" className="hover:text-emerald-400 transition-colors">balunaikbanavath662@gmail.com</a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Lead Developer Profile */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Lead Developer</h4>
+              <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800/80">
+                <span className="block text-sm font-bold text-slate-100 font-sans">Banavath Balu Naik</span>
+                <span className="block text-xs text-slate-500 mb-3">Full Stack Developer</span>
+                <div className="flex gap-2">
+                  <a 
+                    href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-2 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center animate-bounce-short"
+                    title="LinkedIn Profile"
+                  >
+                    <Linkedin className="w-4.5 h-4.5" />
+                  </a>
+                  <a 
+                    href="mailto:balunaikbanavath662@gmail.com"
+                    className="p-2 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center"
+                    title="Send Email"
+                  >
+                    <Mail className="w-4.5 h-4.5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 4: Quick Links */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Legal & Resources</h4>
+              <div className="flex flex-col gap-2.5 text-sm text-slate-400">
+                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                  <span>Terms of Service</span>
+                </a>
+                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                  <span>Privacy Policy</span>
+                </a>
+                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                  <span>SLA Guarantee</span>
+                </a>
+              </div>
+            </div>
+
           </div>
 
-          <div className="space-y-2 text-xs">
-            <h4 className="font-semibold text-slate-200">Legal Provisions</h4>
-            <div className="flex justify-center md:justify-start gap-4 text-slate-500">
-              <a href="#" className="hover:text-emerald-400">Terms of Service</a>
-              <a href="#" className="hover:text-emerald-400">Privacy Policy</a>
-              <a href="#" className="hover:text-emerald-400">SLA Terms</a>
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div className="flex items-center gap-1">
+              <span>© 2026 AgriSmart Corp. Designed by </span>
+              <a 
+                href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:underline font-medium"
+              >
+                Banavath Balu Naik
+              </a>
             </div>
-          </div>
-
-          <div className="text-xs md:text-right text-slate-500 space-y-1">
-            <span>© 2026 AgriSmart Corp. All rights reserved.</span>
-            <span className="block text-[10px] text-slate-600">Powerhouse core powered by gemini-3.5-flash text & vision neural model.</span>
+            <span className="text-slate-600 text-center sm:text-right">
+              Powered by advanced gemini-3.5-flash AI Vision core.
+            </span>
           </div>
         </div>
       </footer>

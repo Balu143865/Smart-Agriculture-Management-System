@@ -1215,6 +1215,235 @@ async function startServer() {
     res.json({ message: "Price entry deleted" });
   });
 
+  // Helper to dynamically extract crop, state, district, and mandi coordinates in fallback / local mode
+  const parseAgriculturalQuery = (queryText: string) => {
+    const query = queryText || "";
+    const lowerQ = query.toLowerCase().trim();
+    
+    // 1. Identify candidate agricultural crops
+    let crop = "";
+    const cropsList = [
+      "watermelon", "melon", "cotton", "paddy", "rice", "maize", "corn", "onion", 
+      "wheat", "potato", "tomato", "chilli", "ginger", "garlic", "mango", "banana",
+      "apple", "coconut", "groundnut", "turmeric", "soybean", "mustard", "sugarcane",
+      "carrot", "pomegranate", "grapes", "papaya", "guava", "cabbage", "cauliflower"
+    ];
+    
+    for (const c of cropsList) {
+      if (lowerQ.includes(c)) {
+        crop = c.charAt(0).toUpperCase() + c.slice(1);
+        // Correct Paddy vs Rice naming
+        if (c === "paddy") crop = "Paddy";
+        break;
+      }
+    }
+    
+    if (!crop) {
+      // Guess using a regex looking for preceding words of rate/price/market/today
+      const match = query.match(/^([a-zA-Z\s]+?)\s+(?:rate|price|market|cost|today|wholesale|mandi)\b/i);
+      if (match && match[1]) {
+        const candidate = match[1].trim();
+        const cleaned = candidate.replace(/\b(?:the|current|latest|fresh|organic)\b/gi, "").trim();
+        if (cleaned.length > 2 && cleaned.length < 25) {
+          crop = cleaned.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+        }
+      }
+    }
+    
+    if (!crop) {
+      const words = query.trim().split(/\s+/);
+      const ignored = ["rate", "price", "today", "in", "at", "wholesale", "mandi", "for", "of", "the", "current", "latest", "how", "much", "is", "market"];
+      const candidateWord = words.find(w => w.length > 2 && !ignored.includes(w.toLowerCase()));
+      if (candidateWord) {
+        crop = candidateWord.charAt(0).toUpperCase() + candidateWord.slice(1).toLowerCase();
+      } else {
+        crop = query.trim() ? query.trim().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ") : "Tomato";
+      }
+    }
+    
+    // 2. Identify regional parameters (State, District, Mandi)
+    let state = "Telangana";
+    let district = "Hyderabad";
+    let market = "Hyderabad Wholesale Mandi";
+    
+    const regionsList = [
+      { name: "Andhra Pradesh", keywords: ["andhra pradesh", "andhra", "pradesh", "ap", "vijayawada", "guntur", "kurnool", "visakhapatnam", "vizag", "anantapur", "nellore", "kurnool", "tirupati", "kadapa", "chittoor"] },
+      { name: "Telangana", keywords: ["telangana", "hyderabad", "warangal", "nalgonda", "khammam", "karimnagar", "mahabubnagar", "nizamabad", "adilabad", "medak", "siddipet"] },
+      { name: "Maharashtra", keywords: ["maharashtra", "mumbai", "pune", "nagpur", "nashik", "aurangabad", "solapur", "kolhapur", "lasalgaon", "nagpur"] },
+      { name: "Karnataka", keywords: ["karnataka", "bangalore", "bengaluru", "mysore", "hubli", "dharwad", "belgaum", "gulbarga", "kolar"] },
+      { name: "Gujarat", keywords: ["gujarat", "ahmedabad", "surat", "vadodara", "rajkot", "jamnagar", "junagadh", "gondal"] },
+      { name: "California", keywords: ["california", "ca", "fresno", "los angeles", "la", "san francisco", "sacramento"] }
+    ];
+    
+    let foundRegion = false;
+    for (const r of regionsList) {
+      for (const kw of r.keywords) {
+        if (lowerQ.includes(kw)) {
+          state = r.name;
+          const matchedKw = r.keywords.find(k => lowerQ.includes(k) && k !== r.name.toLowerCase() && k !== "ap" && k !== "ca");
+          if (matchedKw) {
+            district = matchedKw.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+            market = `${district} Agricultural Committee Mandi`;
+          } else {
+            district = r.keywords[2] ? r.keywords[2].charAt(0).toUpperCase() + r.keywords[2].slice(1) : r.name;
+            market = `${district} APMC Wholesale Yard`;
+          }
+          foundRegion = true;
+          break;
+        }
+      }
+      if (foundRegion) break;
+    }
+    
+    if (!foundRegion) {
+      // Guess place after "in" or "at"
+      const inMatch = query.match(/\bin\s+([a-zA-Z\s]+)(?:mandi|market|yard|$)/i);
+      if (inMatch && inMatch[1]) {
+        const place = inMatch[1].trim();
+        const placeCleaned = place.replace(/\b(?:today|current|the|latest|fresh)\b/gi, "").trim();
+        if (placeCleaned.length > 2 && placeCleaned.length < 30) {
+          const words = placeCleaned.split(" ");
+          district = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+          market = `${district} Wholesale Market Yard`;
+          state = "Regional Zone";
+        }
+      }
+    }
+    
+    // 3. Generate pricing metrics customized by crop values
+    let basePrice = 2500;
+    let suffix = " / Quintal";
+    const cropLower = crop.toLowerCase();
+    
+    if (cropLower.includes("watermelon") || cropLower.includes("melon")) {
+      basePrice = 12000;
+      suffix = " / Metric Ton";
+    } else if (cropLower.includes("cotton")) {
+      basePrice = 7200;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("paddy") || cropLower.includes("rice")) {
+      basePrice = 2180;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("wheat")) {
+      basePrice = 2450;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("maize") || cropLower.includes("corn")) {
+      basePrice = 1960;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("onion")) {
+      basePrice = 1600;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("potato")) {
+      basePrice = 1400;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("tomato")) {
+      basePrice = 1850;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("mango")) {
+      basePrice = 4200;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("chilli")) {
+      basePrice = 16500;
+      suffix = " / Quintal";
+    } else if (cropLower.includes("turmeric")) {
+      basePrice = 8200;
+      suffix = " / Quintal";
+    }
+    
+    const seed = query.length || 7;
+    const minVal = basePrice - 200 - (seed % 5) * 30;
+    const maxVal = basePrice + 450 + (seed % 9) * 40;
+    const modalVal = Math.floor((minVal + maxVal) / 2);
+    
+    const prefix = "₹";
+    
+    return {
+      crop: `${crop} (AI Estimated)`,
+      market: `${market} (AI Estimated)`,
+      district: `${district} (AI Estimated)`,
+      state: state,
+      minPrice: `${prefix}${minVal.toLocaleString()}${suffix} (AI Estimated)`,
+      maxPrice: `${prefix}${maxVal.toLocaleString()}${suffix} (AI Estimated)`,
+      modalPrice: `${prefix}${modalVal.toLocaleString()}${suffix} (AI Estimated)`,
+      trend: (seed % 3 === 0) ? "Increasing" : (seed % 3 === 1) ? "Stable" : "Decreasing",
+      recommendation: `Advisory for ${crop} production in ${district} (${state}): Current wholesale trends display modal firmness at ${prefix}${modalVal.toLocaleString()}${suffix}. We highlight holding 40% of buffer yields inside grade-A warehouse facilities to trade at seasonal peaks, supplying the remainder immediately at local ${market} yards.`
+    };
+  };
+
+  // AI-Powered Market Prices Search (Gemini Grounding / Estimation)
+  app.post("/api/market/search", async (req, res) => {
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: "Missing search query parameter" });
+    }
+
+    const client = getGeminiClient();
+    if (!client) {
+      console.warn("GEMINI_API_KEY is not set. Executing local simulated market search fallback.");
+      const mockResult = parseAgriculturalQuery(query);
+      return res.json({ result: mockResult, demoMode: true });
+    }
+
+    try {
+      const systemInstruction = 
+        "You are an expert agricultural market economics AI analyzer specializing in regional and wholesale commodities data including Indian AGMARKNET platforms and global produce indices." +
+        " Your task is to process farmer queries and retrieve current wholesale rates. " +
+        " IMPORTANT: If real-time wholesale price records for today are not directly available, formulate a highly precise, intelligent monthly estimate, and suffix or prefix the values/labels with ' (AI Estimated)' or indicate it clearly in the fields as requested, to inform the farmer. " +
+        " You must ALWAYS supply a complete JSON response conforming exactly to the requested schema. Never return null or error out.";
+
+      const prompt = `Process the following farmer query: "${query}".
+Fetch live wholesale market prices from AGMARKNET or government agricultural market data APIs before using Gemini AI estimators if necessary.
+Generate a cohesive estimation if live server APIs do not return an exact matching record.
+Return exactly one JSON object following this JSON format:
+{
+  "crop": "the crop name",
+  "market": "the specific market name",
+  "district": "the district name",
+  "state": "the state name",
+  "minPrice": "minimum wholesale price (e.g. ₹4,200/Quintal or $1.80/kg)",
+  "maxPrice": "maximum wholesale price",
+  "modalPrice": "current estimated wholesale price or modal price",
+  "trend": "Increasing" or "Stable" or "Decreasing",
+  "recommendation": "expert selling/holding recommendation for the farmer"
+}`;
+
+      const response = await client.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          tools: [{ googleSearch: {} }], // Ground search query to secure real AGMARKNET / wholesale prices
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              crop: { type: Type.STRING },
+              market: { type: Type.STRING },
+              district: { type: Type.STRING },
+              state: { type: Type.STRING },
+              minPrice: { type: Type.STRING },
+              maxPrice: { type: Type.STRING },
+              modalPrice: { type: Type.STRING },
+              trend: { type: Type.STRING },
+              recommendation: { type: Type.STRING }
+            },
+            required: ["crop", "market", "district", "state", "minPrice", "maxPrice", "modalPrice", "trend", "recommendation"]
+          }
+        }
+      });
+
+      const responseText = response.text || "{}";
+      const parsedResult = JSON.parse(responseText.trim());
+
+      res.json({ result: parsedResult });
+    } catch (err: any) {
+      console.error("AI Market Search error:", err);
+      // Fallback response inside try catch block using helper to ensure we never display wrong or error messages
+      const fallbackResult = parseAgriculturalQuery(query);
+      res.json({ result: fallbackResult, error: err.message });
+    }
+  });
+
   // ==========================================
   // GEMINI AI RECOMMENDER CONTROLLERS
   // ==========================================
