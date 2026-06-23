@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Sprout, HelpCircle, Thermometer, CloudRain, ShieldCheck, Cpu, Play, Compass, RefreshCw, AlertCircle } from "lucide-react";
 import { Recommendation, FertilizerAdvice } from "../types";
 import { motion, AnimatePresence } from "motion/react";
+import { generateCropRecommendations, generateFertilizerOptimization } from "../lib/gemini";
 
 interface AIRecommendersProps {
   authToken: string;
@@ -43,28 +44,18 @@ export default function AIRecommenders({ authToken, defaultTab = "crop" }: AIRec
     setCropRecs([]);
 
     try {
-      const res = await fetch("/api/recommendations/crop", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          soilType,
-          temperature: Number(temperature),
-          rainfall: Number(rainfall),
-          season,
-          location
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate recommendations");
+      const data = await generateCropRecommendations(
+        soilType,
+        Number(temperature),
+        Number(rainfall),
+        season,
+        location
+      );
 
       setCropRecs(data.recommendations || []);
-      setCropDemoAlert(!!data.demoMode);
+      setCropDemoAlert(data.demoMode);
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to generate recommendations");
     } finally {
       setLoading(false);
     }
@@ -77,29 +68,19 @@ export default function AIRecommenders({ authToken, defaultTab = "crop" }: AIRec
     setFertilizerAdvice(null);
 
     try {
-      const res = await fetch("/api/recommendations/fertilizer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          cropName: targetCrop,
-          soilN,
-          soilP,
-          soilK,
-          soilPh: Number(soilPh),
-          targetYield
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate fertilizer guidance");
+      const data = await generateFertilizerOptimization(
+        targetCrop,
+        soilN,
+        soilP,
+        soilK,
+        Number(soilPh),
+        targetYield
+      );
 
       setFertilizerAdvice(data.advice || null);
-      setFertilizerDemoAlert(!!data.demoMode);
+      setFertilizerDemoAlert(data.demoMode);
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to generate fertilizer guidance");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, TrendingUp, TrendingDown, RefreshCw, Calendar, Tag, AlertTriangle, Plus, ShieldCheck } from "lucide-react";
 import { MarketPrice } from "../types";
+import { getMarketPrices, saveMarketPrice, deleteMarketPrice } from "../lib/supabase";
 
 interface MarketPriceBoardProps {
   authToken: string;
@@ -31,15 +32,10 @@ export default function MarketPriceBoard({ authToken, isAdmin, onPriceUpdated }:
     setLoading(true);
     setErrorHeader("");
     try {
-      const res = await fetch("/api/market-prices");
-      const data = await res.json();
-      if (res.ok) {
-        setPricesList(data.marketPrices || []);
-      } else {
-        throw new Error(data.error || "Failed to download price cards");
-      }
+      const data = await getMarketPrices();
+      setPricesList(data || []);
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to download price cards");
     } finally {
       setLoading(false);
     }
@@ -56,24 +52,14 @@ export default function MarketPriceBoard({ authToken, isAdmin, onPriceUpdated }:
     }
 
     try {
-      const res = await fetch("/api/market-prices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          cropName,
-          price: Number(price),
-          unit,
-          change: Number(change) || 0,
-          trend,
-          region
-        })
+      await saveMarketPrice({
+        cropName,
+        price: Number(price),
+        unit,
+        change: Number(change) || 0,
+        trend,
+        region
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Admin rate card update failed");
 
       setAdminMsg(`✓ Successfully registered or modified pricing for ${cropName}!`);
       setCropName("");
@@ -82,7 +68,7 @@ export default function MarketPriceBoard({ authToken, isAdmin, onPriceUpdated }:
       fetchPrices();
       if (onPriceUpdated) onPriceUpdated();
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to update price card");
     }
   };
 
@@ -92,18 +78,12 @@ export default function MarketPriceBoard({ authToken, isAdmin, onPriceUpdated }:
     setAdminMsg("");
 
     try {
-      const res = await fetch(`/api/market-prices/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
+      await deleteMarketPrice(id);
       setAdminMsg("✓ Successfully deleted rate card");
       fetchPrices();
       if (onPriceUpdated) onPriceUpdated();
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to delete price card");
     }
   };
 

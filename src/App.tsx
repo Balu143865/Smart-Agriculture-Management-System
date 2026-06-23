@@ -164,6 +164,23 @@ import AnalyticsReports from "./components/AnalyticsReports";
 
 // Types
 import { User as UserType, Farm, Crop, Transaction } from "./types";
+import { 
+  getFarms, 
+  addFarm, 
+  deleteFarm, 
+  getCrops, 
+  addCrop, 
+  harvestCrop, 
+  deleteCrop, 
+  getTransactions, 
+  addTransaction, 
+  deleteTransaction, 
+  getAdminUsersList, 
+  toggleUserRole, 
+  deleteUserAndAssets, 
+  getAdminSystemStats, 
+  updateProfileFlow 
+} from "./lib/supabase";
 
 export default function App() {
   // Navigation & Authentication states
@@ -293,34 +310,27 @@ export default function App() {
   }, [authToken]);
 
   const syncFarmingSystem = async () => {
-    if (!authToken) return;
+    if (!authToken || !currentUser) return;
     setLoadingOverlay(true);
     setErrorBanner("");
 
     try {
-      const headers = { "Authorization": `Bearer ${authToken}` };
-
-      // Parallel reads
-      const [farmsRes, cropsRes, txsRes] = await Promise.all([
-        fetch("/api/farms", { headers }),
-        fetch("/api/crops", { headers }),
-        fetch("/api/finances", { headers })
+      const [farmsList, cropsList, txsList] = await Promise.all([
+        getFarms(currentUser.id, currentUser.role),
+        getCrops(currentUser.id, currentUser.role),
+        getTransactions(currentUser.id, currentUser.role)
       ]);
 
-      const farmsData = await farmsRes.json();
-      const cropsData = await cropsRes.json();
-      const txData = await txsRes.json();
-
-      if (farmsRes.ok) setFarms(farmsData.farms || []);
-      if (cropsRes.ok) setCrops(cropsData.crops || []);
-      if (txsRes.ok) setTransactions(txData.transactions || []);
+      setFarms(farmsList || []);
+      setCrops(cropsList || []);
+      setTransactions(txsList || []);
 
       // If user is admin, fetch admin telemetry
       if (currentUser?.role === "admin") {
         fetchAdminReports();
       }
     } catch (e: any) {
-      setErrorBanner("Failure connecting to agricultural ledger Node. Offline operations simulation enabled.");
+      setErrorBanner("Failure connecting to agricultural database ledger. Offline operations simulation enabled.");
     } finally {
       setLoadingOverlay(false);
     }
@@ -329,16 +339,12 @@ export default function App() {
   const fetchAdminReports = async () => {
     if (!authToken || currentUser?.role !== "admin") return;
     try {
-      const headers = { "Authorization": `Bearer ${authToken}` };
-      const [usersRes, sysRes] = await Promise.all([
-        fetch("/api/admin/users", { headers }),
-        fetch("/api/admin/system", { headers })
+      const [usersList, systemStats] = await Promise.all([
+        getAdminUsersList(),
+        getAdminSystemStats()
       ]);
-      const usersData = await usersRes.json();
-      const sysData = await sysRes.json();
-
-      if (usersRes.ok) setAdminUsers(usersData.users || []);
-      if (sysRes.ok) setAdminSystemMetrics(sysData.system || null);
+      setAdminUsers(usersList || []);
+      setAdminSystemMetrics(systemStats || null);
     } catch (e) {
       console.error("Admin metrics sync failed", e);
     }
@@ -376,23 +382,13 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("/api/farms", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          name: farmName,
-          location: farmLocation,
-          size: farmSize,
-          soilType: farmSoil,
-          climateRegion: farmClimate
-        })
+      await addFarm(currentUser!.id, {
+        name: farmName,
+        location: farmLocation,
+        size: Number(farmSize),
+        soilType: farmSoil,
+        climateRegion: farmClimate
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save farm failed");
 
       setSuccessBanner(`✓ Farm '${farmName}' newly registered and cataloged.`);
       setFarmName("");
@@ -401,7 +397,7 @@ export default function App() {
       syncFarmingSystem();
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Save farm failed");
     }
   };
 
@@ -410,18 +406,12 @@ export default function App() {
     setErrorBanner("");
 
     try {
-      const res = await fetch(`/api/farms/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
+      await deleteFarm(id);
       setSuccessBanner("✓ Registered farm cleanly purged from database.");
       syncFarmingSystem();
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Delete farm failed");
     }
   };
 
@@ -436,25 +426,15 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("/api/crops", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          farmId: cropFarmId,
-          name: cropName,
-          variety: cropVariety,
-          plantedDate: cropPlantedDate,
-          areaPlanted: cropArea,
-          expectedYield: cropExpYield,
-          season: cropSeason
-        })
+      await addCrop(currentUser!.id, {
+        farmId: cropFarmId,
+        name: cropName,
+        variety: cropVariety,
+        plantedDate: cropPlantedDate,
+        areaPlanted: Number(cropArea),
+        expectedYield: Number(cropExpYield),
+        season: cropSeason
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Crop sowing failed");
 
       setSuccessBanner(`✓ Sown timeline initiated for ${cropName}!`);
       setCropName("");
@@ -464,51 +444,33 @@ export default function App() {
       syncFarmingSystem();
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Crop sowing failed");
     }
   };
 
   const handleHarvestCropStatus = async (id: string, actualWeight: number) => {
     setErrorBanner("");
     try {
-      const res = await fetch(`/api/crops/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          status: "harvested",
-          actualYield: actualWeight,
-          harvestedDate: new Date().toISOString().split("T")[0]
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed harvest settle");
+      await harvestCrop(id, actualWeight, new Date().toISOString().split("T")[0]);
 
       setSuccessBanner("✓ Crop timeline reaped and archived. Automatic wholesale revenue ledger created!");
       syncFarmingSystem();
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Failed to harvest crop");
     }
   };
 
   const handleDeleteCrop = async (id: string) => {
     if (!confirm("Remove this crop ledger?")) return;
+    setErrorBanner("");
     try {
-      const res = await fetch(`/api/crops/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      if (res.ok) {
-        setSuccessBanner("✓ Crop record deleted");
-        syncFarmingSystem();
-        setTimeout(() => setSuccessBanner(""), 4000);
-      }
+      await deleteCrop(id);
+      setSuccessBanner("✓ Crop record deleted");
+      syncFarmingSystem();
+      setTimeout(() => setSuccessBanner(""), 4000);
     } catch (e: any) {
-      setErrorBanner(e.message);
+      setErrorBanner(e.message || "Failed to delete crop record");
     }
   };
 
@@ -523,24 +485,14 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("/api/finances", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          farmId: txFarmId,
-          type: txType,
-          category: txCategory,
-          amount: txAmount,
-          date: txDate,
-          description: txDesc
-        })
+      await addTransaction(currentUser!.id, {
+        farmId: txFarmId,
+        type: txType as any,
+        category: txCategory,
+        amount: Number(txAmount),
+        date: txDate,
+        description: txDesc
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ledger commit error");
 
       setSuccessBanner("✓ Financial transaction safely accounted in ground ledgers.");
       setTxAmount("");
@@ -548,24 +500,20 @@ export default function App() {
       syncFarmingSystem();
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Failed to add ledger entry");
     }
   };
 
   const handleDeleteLedger = async (id: string) => {
     if (!confirm("Are you certain you wish to delete this financial ledger?")) return;
+    setErrorBanner("");
     try {
-      const res = await fetch(`/api/finances/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      if (res.ok) {
-        setSuccessBanner("✓ Ledger record deleted");
-        syncFarmingSystem();
-        setTimeout(() => setSuccessBanner(""), 4000);
-      }
+      await deleteTransaction(id);
+      setSuccessBanner("✓ Ledger record deleted");
+      syncFarmingSystem();
+      setTimeout(() => setSuccessBanner(""), 4000);
     } catch (e: any) {
-      setErrorBanner(e.message);
+      setErrorBanner(e.message || "Failed to delete financial ledger entry");
     }
   };
 
@@ -573,39 +521,25 @@ export default function App() {
   const handleToggleUserAdmin = async (id: string, currentRole: string) => {
     const nextRole = currentRole === "admin" ? "farmer" : "admin";
     try {
-      const res = await fetch(`/api/admin/users/${id}/role`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ role: nextRole })
-      });
-      if (res.ok) {
-        setSuccessBanner("✓ User role updated successfully");
-        fetchAdminReports();
-        setTimeout(() => setSuccessBanner(""), 4000);
-      }
+      await toggleUserRole(id, nextRole);
+      setSuccessBanner("✓ User role updated successfully");
+      fetchAdminReports();
+      setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Toggle user role failed");
     }
   };
 
   const handleAdminDeleteUser = async (id: string) => {
     if (!confirm("Purge user? This wipes all related farms, crops and databases!")) return;
     try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      if (res.ok) {
-        setSuccessBanner("✓ User purged successfully");
-        fetchAdminReports();
-        syncFarmingSystem();
-        setTimeout(() => setSuccessBanner(""), 4000);
-      }
+      await deleteUserAndAssets(id);
+      setSuccessBanner("✓ User purged successfully");
+      fetchAdminReports();
+      syncFarmingSystem();
+      setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Delete user failed");
     }
   };
 
@@ -616,30 +550,20 @@ export default function App() {
     setSuccessBanner("");
 
     try {
-      const res = await fetch("/api/auth/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          name: profileName || undefined,
-          phone: profilePhone || undefined,
-          address: profileAddress || undefined,
-          password: profilePass || undefined
-        })
+      const updatedUser = await updateProfileFlow(currentUser!.id, {
+        name: profileName || undefined,
+        phone: profilePhone || undefined,
+        address: profileAddress || undefined,
+        password: profilePass || undefined
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
       setSuccessBanner("✓ profile modifications filed cleanly! Settings applied.");
-      setCurrentUser(data.user);
-      localStorage.setItem("agri-user", JSON.stringify(data.user));
+      setCurrentUser(updatedUser);
+      localStorage.setItem("agri-user", JSON.stringify(updatedUser));
       setProfilePass("");
       setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err: any) {
-      setErrorBanner(err.message);
+      setErrorBanner(err.message || "Failed to update profile settings");
     }
   };
 

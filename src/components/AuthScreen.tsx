@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Sprout, Lock, Mail, User, ShieldCheck, ArrowRight, UserCheck, AlertCircle, Phone, MapPin, Eye, EyeOff } from "lucide-react";
+import { signUpUser, signInUser, resetPasswordFlow } from "../lib/supabase";
 
 interface AuthScreenProps {
   onAuthSuccess: (token: string, user: any) => void;
@@ -45,25 +46,11 @@ export default function AuthScreen({ onAuthSuccess, onBackToHome }: AuthScreenPr
     setForgotInst("");
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      let data: any;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server connection error (${res.status}): ${res.statusText || "Failed to parse system response"}`);
-      }
-
-      if (!res.ok) throw new Error(data.error || "Reset failed");
-
+      const data = await resetPasswordFlow(email);
       setForgotInst(data.instructions);
       setSuccessMsg(`Temporary password generated: ${data.tempPassword}`);
     } catch (err: any) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || "Failed to proceed reset password flow.");
     } finally {
       setLoading(false);
     }
@@ -75,33 +62,18 @@ export default function AuthScreen({ onAuthSuccess, onBackToHome }: AuthScreenPr
     setSuccessMsg("");
     setLoading(true);
 
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-    const payload = isLogin 
-      ? { email, password }
-      : { name, email, password, phone, address, role };
-
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      let data: any;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server connection error (${res.status}): ${res.statusText || "Failed to parse system response"}`);
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || "Authentication failed");
+      let result;
+      if (isLogin) {
+        result = await signInUser(email, password);
+      } else {
+        result = await signUpUser(email, password, name, phone, address, role);
       }
 
       // Success
-      onAuthSuccess(data.token, data.user);
+      onAuthSuccess(result.token, result.user);
     } catch (err: any) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || "Authentication process failed.");
     } finally {
       setLoading(false);
     }

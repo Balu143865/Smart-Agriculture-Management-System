@@ -8,6 +8,7 @@ import {
 import { TrendingUp, FileSpreadsheet, RefreshCw, Landmark, HeartHandshake, Percent, Download, AlertCircle } from "lucide-react";
 import { AnalyticsData, Transaction, Farm, Crop, DiseaseLog } from "../types";
 import { jsPDF } from "jspdf";
+import { getFarms, getCrops, getTransactions, getDiseaseLogs } from "../lib/supabase";
 
 interface AnalyticsReportsProps {
   authToken: string;
@@ -33,17 +34,80 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
     setLoading(true);
     setErrorHeader("");
     try {
-      const res = await fetch("/api/reports/analytics", {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setAnalytics(data);
-      } else {
-        throw new Error(data.error || "Failed to load reports matrix");
+      const storedUser = localStorage.getItem("agri-user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (!user) {
+        throw new Error("No authenticated user session found.");
       }
+
+      const [farmsList, cropsList, txsList, diseaseList] = await Promise.all([
+        getFarms(user.id, user.role),
+        getCrops(user.id, user.role),
+        getTransactions(user.id, user.role),
+        getDiseaseLogs(user.id, user.role)
+      ]);
+
+      // Calculate totals
+      const totalIncome = txsList.filter(t => t.type === "income").reduce((sum, t) => sum + Number(t.amount), 0);
+      const totalExpenses = txsList.filter(t => t.type === "expense").reduce((sum, t) => sum + Number(t.amount), 0);
+      const netProfit = totalIncome - totalExpenses;
+      const totalFarms = farmsList.length;
+      const totalCrops = cropsList.length;
+      const activeCrops = cropsList.filter(c => c.status === "active").length;
+      const diseaseAlertCount = diseaseList.length;
+
+      // Group by Month names of current year
+      const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const financialChart = monthsShort.map((m, idx) => {
+        const matchTxs = txsList.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === idx;
+        });
+        const income = matchTxs.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0);
+        const expense = matchTxs.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0);
+        return {
+          month: m,
+          income,
+          expense,
+          profit: income - expense
+        };
+      });
+
+      // Crop Yields mapping
+      const cropYields = cropsList.map(c => ({
+        name: c.name,
+        variety: c.variety,
+        yield: c.actualYield || c.expectedYield || 0,
+        area: c.areaPlanted || 0,
+        status: c.status
+      }));
+
+      // Group expense Categories
+      const expenseCats: Record<string, number> = {};
+      txsList.filter(t => t.type === "expense").forEach(t => {
+        expenseCats[t.category] = (expenseCats[t.category] || 0) + Number(t.amount);
+      });
+      const expenseCategoryChart = Object.entries(expenseCats).map(([name, value]) => ({
+        name,
+        value
+      }));
+
+      setAnalytics({
+        summary: {
+          totalIncome,
+          totalExpenses,
+          netProfit,
+          totalFarms,
+          totalCrops,
+          activeCrops,
+          diseaseAlertCount
+        },
+        financialChart,
+        cropYields,
+        expenseCategoryChart
+      });
     } catch (err: any) {
-      setErrorHeader(err.message);
+      setErrorHeader(err.message || "Failed to load reports matrix");
     } finally {
       setLoading(false);
     }
@@ -54,14 +118,13 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
     setExportError("");
     setExportSuccess("");
     try {
-      const res = await fetch("/api/finances", {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      if (!res.ok) {
-        throw new Error("Failed to load detailed financial ledger for CSV export.");
+      const storedUser = localStorage.getItem("agri-user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (!user) {
+        throw new Error("No authenticated user context found.");
       }
-      const data = await res.json();
-      const txs: Transaction[] = data.transactions || [];
+
+      const txs = await getTransactions(user.id, user.role);
 
       if (txs.length === 0) {
         setExportError("No transactions found to export in the ledger.");
@@ -70,7 +133,7 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
       }
 
       // Generate CSV Content
-      const headers = ["ID", "Farm ID", "Date", "Type", "Category", "Amount ($)", "Description", "Created At"].join(",");
+      const csvHeaders = ["ID", "Farm ID", "Date", "Type", "Category", "Amount ($)", "Description", "Created At"].join(",");
       const rows = txs.map((t) => [
         `"${t.id}"`,
         `"${t.farmId}"`,
@@ -82,7 +145,7 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
         `"${t.createdAt}"`
       ].join(","));
 
-      const csvString = [headers, ...rows].join("\n");
+      const csvString = [csvHeaders, ...rows].join("\n");
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       
@@ -108,31 +171,18 @@ export default function AnalyticsReports({ authToken }: AnalyticsReportsProps) {
     setExportError("");
     setExportSuccess("");
     try {
-      const headers = { "Authorization": `Bearer ${authToken}` };
-      
-      const [userRes, farmsRes, cropsRes, diseaseRes, txRes] = await Promise.all([
-        fetch("/api/auth/me", { headers }),
-        fetch("/api/farms", { headers }),
-        fetch("/api/crops", { headers }),
-        fetch("/api/disease/history", { headers }),
-        fetch("/api/finances", { headers })
-      ]);
-
-      if (!userRes.ok || !farmsRes.ok || !cropsRes.ok || !diseaseRes.ok || !txRes.ok) {
-        throw new Error("Failed to gather complete diagnostic & ledger files for audit.");
+      const storedUser = localStorage.getItem("agri-user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (!user) {
+        throw new Error("No user profile matched. Action rejected.");
       }
 
-      const userData = await userRes.json();
-      const farmsData = await farmsRes.json();
-      const cropsData = await cropsRes.json();
-      const diseaseData = await diseaseRes.json();
-      const txData = await txRes.json();
-
-      const user = userData.user;
-      const farmsList: Farm[] = farmsData.farms || [];
-      const cropsList: Crop[] = cropsData.crops || [];
-      const diseaseList: DiseaseLog[] = diseaseData.diseaseLogs || [];
-      const txsList: Transaction[] = txData.transactions || [];
+      const [farmsList, cropsList, diseaseList, txsList] = await Promise.all([
+        getFarms(user.id, user.role),
+        getCrops(user.id, user.role),
+        getDiseaseLogs(user.id, user.role),
+        getTransactions(user.id, user.role)
+      ]);
 
       // Create PDF
       const doc = new jsPDF({
