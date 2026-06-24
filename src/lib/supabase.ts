@@ -433,6 +433,96 @@ export async function updateProfileFlow(userId: string, data: any) {
 // -------------------------------------------------------
 // FARMS OPERATIONS
 // -------------------------------------------------------
+export interface SyncAction {
+  id: string;
+  action: "insert" | "delete" | "update";
+  table: "farms" | "crops" | "transactions" | "disease_logs";
+  recordId: string;
+  payload: any;
+  timestamp: string;
+}
+
+export function getSyncQueue(): SyncAction[] {
+  try {
+    const queue = localStorage.getItem("fallback-db-sync-queue");
+    return queue ? JSON.parse(queue) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setSyncQueue(queue: SyncAction[]) {
+  localStorage.setItem("fallback-db-sync-queue", JSON.stringify(queue));
+}
+
+export function addToSyncQueue(
+  action: "insert" | "delete" | "update",
+  table: "farms" | "crops" | "transactions" | "disease_logs",
+  recordId: string,
+  payload: any
+) {
+  const queue = getSyncQueue();
+  const existingIdx = queue.findIndex(item => item.table === table && item.recordId === recordId);
+  if (existingIdx !== -1) {
+    if (action === "delete" && queue[existingIdx].action === "insert") {
+      queue.splice(existingIdx, 1);
+      setSyncQueue(queue);
+      return;
+    }
+  }
+  queue.push({
+    id: "action_" + Math.random().toString(36).substr(2, 9),
+    action,
+    table,
+    recordId,
+    payload,
+    timestamp: new Date().toISOString()
+  });
+  setSyncQueue(queue);
+}
+
+export async function syncPendingActions(): Promise<{ success: boolean; syncedCount: number; errors: string[] }> {
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: false, syncedCount: 0, errors: ["Supabase database is not configured"] };
+  }
+
+  const queue = getSyncQueue();
+  if (queue.length === 0) {
+    return { success: true, syncedCount: 0, errors: [] };
+  }
+
+  let syncedCount = 0;
+  const errors: string[] = [];
+  const remainingQueue: SyncAction[] = [];
+
+  for (const item of queue) {
+    try {
+      if (item.action === "insert") {
+        const { error } = await supabase.from(item.table).insert([item.payload]);
+        if (error) throw error;
+      } else if (item.action === "delete") {
+        const { error } = await supabase.from(item.table).delete().eq("id", item.recordId);
+        if (error) throw error;
+      } else if (item.action === "update") {
+        const { error } = await supabase.from(item.table).update(item.payload).eq("id", item.recordId);
+        if (error) throw error;
+      }
+      syncedCount++;
+    } catch (err: any) {
+      console.error(`Offline sync failure for ${item.table} (${item.action}):`, err);
+      errors.push(`${item.table} (${item.action}): ${err?.message || String(err)}`);
+      remainingQueue.push(item);
+    }
+  }
+
+  setSyncQueue(remainingQueue);
+  return {
+    success: errors.length === 0,
+    syncedCount,
+    errors
+  };
+}
+
 export async function getFarms(userId: string, role: string) {
   if (isSupabaseConfigured && supabase) {
     try {
@@ -441,7 +531,20 @@ export async function getFarms(userId: string, role: string) {
         query = query.eq("userId", userId);
       }
       const { data, error } = await query;
-      if (!error && data) return data as Farm[];
+      if (!error && data) {
+        const localFarms = getLocalTable<Farm>("farms");
+        let updatedFarms = [];
+        if (role === "admin") {
+          updatedFarms = data;
+        } else {
+          updatedFarms = [
+            ...localFarms.filter(f => f.userId !== userId),
+            ...data
+          ];
+        }
+        setLocalTable("farms", updatedFarms);
+        return data as Farm[];
+      }
     } catch (e) {
       console.warn("Supabase farms read failover:", e);
     }
@@ -461,10 +564,13 @@ export async function addFarm(userId: string, payload: Omit<Farm, "id" | "userId
     climateRegion: payload.climateRegion
   };
 
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from("farms").insert([newFarm]).select();
-      if (!error && data) return data[0] as Farm;
+      if (!error && data) {
+        isSynced = true;
+      }
     } catch (e: any) {
       console.warn("Supabase farm insert failover:", e.message);
     }
@@ -473,14 +579,22 @@ export async function addFarm(userId: string, payload: Omit<Farm, "id" | "userId
   const farms = getLocalTable<Farm>("farms");
   farms.push(newFarm);
   setLocalTable("farms", farms);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("insert", "farms", newFarm.id, newFarm);
+  }
+
   return newFarm;
 }
 
 export async function deleteFarm(id: string) {
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { error } = await supabase.from("farms").delete().eq("id", id);
-      if (!error) return true;
+      if (!error) {
+        isSynced = true;
+      }
     } catch (e) {
       console.warn("Supabase farm deletion failover:", e);
     }
@@ -499,6 +613,10 @@ export async function deleteFarm(id: string) {
   txs = txs.filter(t => t.farmId !== id);
   setLocalTable("transactions", txs);
 
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("delete", "farms", id, null);
+  }
+
   return true;
 }
 
@@ -513,7 +631,20 @@ export async function getCrops(userId: string, role: string) {
         query = query.eq("userId", userId);
       }
       const { data, error } = await query;
-      if (!error && data) return data as Crop[];
+      if (!error && data) {
+        const localCrops = getLocalTable<Crop>("crops");
+        let updatedCrops = [];
+        if (role === "admin") {
+          updatedCrops = data;
+        } else {
+          updatedCrops = [
+            ...localCrops.filter(c => c.userId !== userId),
+            ...data
+          ];
+        }
+        setLocalTable("crops", updatedCrops);
+        return data as Crop[];
+      }
     } catch (e) {
       console.warn("Supabase crops fetch error. Failover activated.");
     }
@@ -536,10 +667,13 @@ export async function addCrop(userId: string, payload: Omit<Crop, "id" | "userId
     season: payload.season
   };
 
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from("crops").insert([newCrop]).select();
-      if (!error && data) return data[0] as Crop;
+      if (!error && data) {
+        isSynced = true;
+      }
     } catch (e: any) {
       console.warn("Supabase active crop planting failover:", e.message);
     }
@@ -548,18 +682,27 @@ export async function addCrop(userId: string, payload: Omit<Crop, "id" | "userId
   const crops = getLocalTable<Crop>("crops");
   crops.push(newCrop);
   setLocalTable("crops", crops);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("insert", "crops", newCrop.id, newCrop);
+  }
+
   return newCrop;
 }
 
 export async function harvestCrop(id: string, actualYield: number, harvestedDate: string) {
+  let isSynced = false;
+  const updatePayload = { status: "harvested" as const, actualYield: Number(actualYield), harvestedDate };
+
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("crops")
-        .update({ status: "harvested", actualYield, harvestedDate })
-        .eq("id", id)
-        .select();
-      if (!error && data) return data[0] as Crop;
+        .update(updatePayload)
+        .eq("id", id);
+      if (!error) {
+        isSynced = true;
+      }
     } catch (e: any) {
       console.warn("Supabase reap update failover:", e.message);
     }
@@ -594,16 +737,35 @@ export async function harvestCrop(id: string, actualYield: number, harvestedDate
     txs.push(autoTx);
     setLocalTable("transactions", txs);
 
+    if (isSupabaseConfigured) {
+      if (!isSynced) {
+        addToSyncQueue("update", "crops", id, updatePayload);
+        addToSyncQueue("insert", "transactions", autoTx.id, autoTx);
+      } else {
+        try {
+          const { error } = await supabase.from("transactions").insert([autoTx]);
+          if (error) {
+            addToSyncQueue("insert", "transactions", autoTx.id, autoTx);
+          }
+        } catch {
+          addToSyncQueue("insert", "transactions", autoTx.id, autoTx);
+        }
+      }
+    }
+
     return crops[idx];
   }
   throw new Error("Unable to locate targeted crop record.");
 }
 
 export async function deleteCrop(id: string) {
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { error } = await supabase.from("crops").delete().eq("id", id);
-      if (!error) return true;
+      if (!error) {
+        isSynced = true;
+      }
     } catch (e) {
       console.warn("Supabase crop deletion failover:", e);
     }
@@ -612,6 +774,11 @@ export async function deleteCrop(id: string) {
   let crops = getLocalTable<Crop>("crops");
   crops = crops.filter(c => c.id !== id);
   setLocalTable("crops", crops);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("delete", "crops", id, null);
+  }
+
   return true;
 }
 
@@ -626,7 +793,20 @@ export async function getTransactions(userId: string, role: string) {
         query = query.eq("userId", userId);
       }
       const { data, error } = await query;
-      if (!error && data) return data as Transaction[];
+      if (!error && data) {
+        const localTxs = getLocalTable<Transaction>("transactions");
+        let updatedTxs = [];
+        if (role === "admin") {
+          updatedTxs = data;
+        } else {
+          updatedTxs = [
+            ...localTxs.filter(t => t.userId !== userId),
+            ...data
+          ];
+        }
+        setLocalTable("transactions", updatedTxs);
+        return data as Transaction[];
+      }
     } catch (e) {
       console.warn("Supabase ledger fetch failover.");
     }
@@ -648,10 +828,13 @@ export async function addTransaction(userId: string, payload: Omit<Transaction, 
     createdAt: new Date().toISOString()
   };
 
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from("transactions").insert([newTx]).select();
-      if (!error && data) return data[0] as Transaction;
+      if (!error && data) {
+        isSynced = true;
+      }
     } catch (e: any) {
       console.warn("Supabase transaction log insert failover:", e.message);
     }
@@ -660,14 +843,22 @@ export async function addTransaction(userId: string, payload: Omit<Transaction, 
   const txs = getLocalTable<Transaction>("transactions");
   txs.push(newTx);
   setLocalTable("transactions", txs);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("insert", "transactions", newTx.id, newTx);
+  }
+
   return newTx;
 }
 
 export async function deleteTransaction(id: string) {
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
-      if (!error) return true;
+      if (!error) {
+        isSynced = true;
+      }
     } catch (e) {
       console.warn("Supabase transaction removal failover.");
     }
@@ -676,6 +867,11 @@ export async function deleteTransaction(id: string) {
   let txs = getLocalTable<Transaction>("transactions");
   txs = txs.filter(t => t.id !== id);
   setLocalTable("transactions", txs);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("delete", "transactions", id, null);
+  }
+
   return true;
 }
 
@@ -690,7 +886,20 @@ export async function getDiseaseLogs(userId: string, role: string) {
         query = query.eq("userId", userId);
       }
       const { data, error } = await query;
-      if (!error && data) return data as DiseaseLog[];
+      if (!error && data) {
+        const localLogs = getLocalTable<DiseaseLog>("diseaseLogs");
+        let updatedLogs = [];
+        if (role === "admin") {
+          updatedLogs = data;
+        } else {
+          updatedLogs = [
+            ...localLogs.filter(l => l.userId !== userId),
+            ...data
+          ];
+        }
+        setLocalTable("diseaseLogs", updatedLogs);
+        return data as DiseaseLog[];
+      }
     } catch (e) {
       console.warn("Supabase disease reports log readout error. Offline emulation triggered.");
     }
@@ -707,10 +916,13 @@ export async function addDiseaseLog(userId: string, payload: Omit<DiseaseLog, "i
     date: payload.date || new Date().toISOString().split("T")[0]
   };
 
+  let isSynced = false;
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from("disease_logs").insert([newLog]).select();
-      if (!error && data) return data[0] as DiseaseLog;
+      if (!error && data) {
+        isSynced = true;
+      }
     } catch (e: any) {
       console.warn("Supabase disease logger write failover:", e.message);
     }
@@ -719,6 +931,11 @@ export async function addDiseaseLog(userId: string, payload: Omit<DiseaseLog, "i
   const logs = getLocalTable<DiseaseLog>("diseaseLogs");
   logs.push(newLog);
   setLocalTable("diseaseLogs", logs);
+
+  if (isSupabaseConfigured && !isSynced) {
+    addToSyncQueue("insert", "disease_logs", newLog.id, newLog);
+  }
+
   return newLog;
 }
 

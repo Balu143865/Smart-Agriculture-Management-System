@@ -20,6 +20,8 @@ import {
   Sun, 
   Moon, 
   User, 
+  Wifi,
+  WifiOff,
   Compass, 
   ChevronRight,
   ShieldCheck,
@@ -35,7 +37,9 @@ import {
   Sparkles,
   Palette,
   Laptop,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Mic,
+  MicOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -115,9 +119,9 @@ const ACCENT_COLORS = {
     bgAccent: "bg-amber-50/75 dark:bg-amber-950/20",
     borderAccent: "border-amber-100 dark:border-amber-950",
     badgeSuccess: "bg-amber-50 text-amber-800 border-amber-100 dark:bg-amber-950/20 dark:text-amber-300",
-    buttonBg: "bg-amber-600 hover:bg-amber-705 active:bg-amber-800 text-white",
+    buttonBg: "bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white",
     glow: "text-amber-300",
-    iconBg: "bg-amber-50 dark:bg-amber-950/50 text-amber-605 dark:text-amber-400",
+    iconBg: "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400",
     badgeRole: "bg-amber-100/70 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
   },
   violet: {
@@ -182,7 +186,9 @@ import {
   toggleUserRole, 
   deleteUserAndAssets, 
   getAdminSystemStats, 
-  updateProfileFlow 
+  updateProfileFlow,
+  getSyncQueue,
+  syncPendingActions
 } from "./lib/supabase";
 
 const overviewContainerVariants = {
@@ -234,7 +240,7 @@ export default function App() {
   const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">(() => {
     return (localStorage.getItem("theme-mode") as any) || "system";
   });
-  const [iconStyle, setIconStyle] = useState<"outlines" | "glow">(() => {
+  const [iconStyle, setIconStyle] = useState<"outlines" | "glow" | "duotone">(() => {
     return (localStorage.getItem("theme-icon-style") as any) || "glow";
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -262,6 +268,9 @@ export default function App() {
   const [txAmount, setTxAmount] = useState("");
   const [txDate, setTxDate] = useState("");
   const [txDesc, setTxDesc] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
@@ -275,6 +284,11 @@ export default function App() {
   // Status Alerts
   const [errorBanner, setErrorBanner] = useState("");
   const [successBanner, setSuccessBanner] = useState("");
+
+  // Offline and Sync States
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState(() => getSyncQueue().length);
 
   const cTheme = ACCENT_COLORS[accentColor] || ACCENT_COLORS.emerald;
 
@@ -364,6 +378,70 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("theme-icon-style", iconStyle);
   }, [iconStyle]);
+
+  // Offline Connection Listener & Auto-Sync
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOnline(true);
+      setIsSyncing(true);
+      try {
+        const result = await syncPendingActions();
+        if (result.syncedCount > 0) {
+          setSuccessBanner(`✓ Connection restored! Auto-synchronized ${result.syncedCount} offline record(s) with cloud server.`);
+          setTimeout(() => setSuccessBanner(""), 5000);
+          syncFarmingSystem();
+        }
+      } catch (err) {
+        console.warn("Automated offline sync failed on reconnection:", err);
+      } finally {
+        setIsSyncing(false);
+        setPendingSyncCount(getSyncQueue().length);
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Monitor local sync-queue updates periodically
+    const interval = setInterval(() => {
+      setPendingSyncCount(getSyncQueue().length);
+    }, 2000);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      clearInterval(interval);
+    };
+  }, [authToken]);
+
+  const handleManualSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    setErrorBanner("");
+    try {
+      const result = await syncPendingActions();
+      setPendingSyncCount(getSyncQueue().length);
+      if (result.success) {
+        if (result.syncedCount > 0) {
+          setSuccessBanner(`✓ Successfully synchronized ${result.syncedCount} pending records to cloud database.`);
+          syncFarmingSystem();
+        } else {
+          setSuccessBanner("✓ All records are already synchronized and up to date.");
+        }
+        setTimeout(() => setSuccessBanner(""), 4000);
+      } else {
+        setErrorBanner(`Sync partially completed: ${result.errors.join(", ")}`);
+      }
+    } catch (err: any) {
+      setErrorBanner(`Failed to sync records: ${err?.message || String(err)}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Load backend data after auth token triggers
   useEffect(() => {
@@ -580,6 +658,65 @@ export default function App() {
     }
   };
 
+  const toggleSpeechRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechError("Speech recognition not supported in this browser. Please try Chrome or Safari.");
+      setTimeout(() => setSpeechError(null), 5000);
+      return;
+    }
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    setSpeechError(null);
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = "en-US";
+
+      rec.onstart = () => {
+        setIsRecording(true);
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setTxDesc((prev) => (prev ? prev.trim() + " " + transcript : transcript));
+        }
+      };
+
+      rec.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        if (event.error === "not-allowed") {
+          setSpeechError("Microphone permission denied. Please enable mic access.");
+        } else {
+          setSpeechError(`Voice input error: ${event.error}`);
+        }
+        setIsRecording(false);
+        setTimeout(() => setSpeechError(null), 5000);
+      };
+
+      rec.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err: any) {
+      console.error(err);
+      setSpeechError("Failed to initialize voice recognition.");
+      setIsRecording(false);
+      setTimeout(() => setSpeechError(null), 5000);
+    }
+  };
+
   const handleExportLedgerCsv = () => {
     setErrorBanner("");
     if (transactions.length === 0) {
@@ -697,6 +834,12 @@ export default function App() {
       <LandingPage 
         onGetStarted={() => setShowAuth(true)}
         onLoginClick={() => setShowAuth(true)}
+        iconStyle={iconStyle}
+        setIconStyle={setIconStyle}
+        themeMode={themeMode}
+        changeThemeMode={changeThemeMode}
+        accentColor={accentColor}
+        setAccentColor={setAccentColor}
       />
     );
   }
@@ -710,18 +853,53 @@ export default function App() {
           <div className="p-1 px-2 bg-white/15 rounded-lg text-white border border-white/10 shadow-sm">
             <Sprout className="w-4 h-4 animate-pulse" />
           </div>
-          <span className="text-base font-bold tracking-tight font-display text-white">
+          <span className="text-base font-bold tracking-tight font-display text-white flex items-center gap-1.5">
             Agri<span className="opacity-80">Smart</span>
+            {isOnline ? (
+              <span className="text-[8px] px-1 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-extrabold font-mono uppercase tracking-wider">Online</span>
+            ) : (
+              <span className="text-[8px] px-1 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold font-mono uppercase tracking-wider animate-pulse">Offline</span>
+            )}
+            {pendingSyncCount > 0 && (
+              <span className="text-[8px] px-1 py-0.5 rounded bg-rose-500/20 border border-rose-500/30 text-rose-300 font-extrabold font-mono uppercase tracking-wider">{pendingSyncCount} PENDING</span>
+            )}
           </span>
         </div>
         
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 focus:outline-none transition-all cursor-pointer"
-          aria-label="Toggle Navigation Menu"
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Quick theme switcher for mobile (directly in header) */}
+          <div className="flex items-center gap-1 p-0.5 bg-black/20 rounded-xl border border-white/5 shadow-inner">
+            <button 
+              onClick={(e) => changeThemeMode("light", e)}
+              title="Light Mode"
+              className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "light" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
+            >
+              {iconStyle === "glow" ? <Sun className="w-3.5 h-3.5 text-amber-400" fill="#fcd34d" /> : <Sun className="w-3.5 h-3.5 stroke-1 text-white" />}
+            </button>
+            <button 
+              onClick={(e) => changeThemeMode("dark", e)}
+              title="Dark Mode"
+              className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "dark" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
+            >
+              {iconStyle === "glow" ? <Moon className="w-3.5 h-3.5 text-indigo-300" fill="#a5b4fc" /> : <Moon className="w-3.5 h-3.5 stroke-1 text-white" />}
+            </button>
+            <button 
+              onClick={(e) => changeThemeMode("system", e)}
+              title="System Preferences"
+              className={`p-1.5 rounded-lg transition-all duration-300 focus:outline-none cursor-pointer ${themeMode === "system" ? "bg-white/20 text-white scale-105 shadow-sm" : "text-white/40 hover:text-white/70"}`}
+            >
+              {iconStyle === "glow" ? <Monitor className="w-3.5 h-3.5 text-emerald-400" fill="#6ee7b7" /> : <Monitor className="w-3.5 h-3.5 stroke-1 text-white" />}
+            </button>
+          </div>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 focus:outline-none transition-all cursor-pointer"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </header>
 
       {/* Mobile Drawer Slide-Down (Visible only on mobile when menu is active) */}
@@ -734,31 +912,6 @@ export default function App() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className={`md:hidden overflow-hidden border-b border-white/10 px-4 pb-6 pt-2 space-y-4 shadow-xl select-none sticky top-[57px] z-45 ${cTheme.sidebarBg}`}
           >
-            {/* Quick theme switcher for mobile */}
-            <div className="flex items-center justify-between bg-black/20 p-2 rounded-xl border border-white/5 mx-1">
-              <span className="text-xs text-white/70 font-semibold font-sans">Theme Swatch:</span>
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={(e) => changeThemeMode("light", e)}
-                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "light" ? "bg-white/20 text-white" : "text-white/40"}`}
-                >
-                  <Sun className="w-3.5 h-3.5" />
-                </button>
-                <button 
-                  onClick={(e) => changeThemeMode("dark", e)}
-                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "dark" ? "bg-white/20 text-white" : "text-white/40"}`}
-                >
-                  <Moon className="w-3.5 h-3.5" />
-                </button>
-                <button 
-                  onClick={(e) => changeThemeMode("system", e)}
-                  className={`p-1.5 rounded-lg transition-all duration-300 ${themeMode === "system" ? "bg-white/20 text-white" : "text-white/40"}`}
-                >
-                  <Monitor className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
             {/* Profile node brief */}
             <div className="p-3 bg-black/15 rounded-xl space-y-1 border border-white/5 mx-1">
               <div className="flex items-center gap-2 text-xs">
@@ -774,28 +927,28 @@ export default function App() {
             <nav className="flex flex-col gap-1 text-xs font-semibold mx-1">
               <button 
                 onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "overview" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "overview" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <Compass className="w-4 h-4" /> Operations Overview
               </button>
 
               <button 
                 onClick={() => { setActiveTab("farms"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "farms" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "farms" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <MapPin className="w-4 h-4" /> Farm Registries
               </button>
 
               <button 
                 onClick={() => { setActiveTab("crops"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "crops" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "crops" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <Layers className="w-4 h-4" /> Crop Timelines
               </button>
 
               <button 
                 onClick={() => { setActiveTab("operations"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "operations" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "operations" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <TrendingUp className="w-4 h-4" /> Operating Budget
               </button>
@@ -804,21 +957,21 @@ export default function App() {
 
               <button 
                 onClick={() => { setActiveTab("recommendation"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "recommendation" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "recommendation" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <Sprout className="w-4 h-4" /> Crop SUITABILITY
               </button>
 
               <button 
                 onClick={() => { setActiveTab("fertilizer"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "fertilizer" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "fertilizer" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <Droplet className="w-4 h-4" /> Fertilizer SUGGESTION
               </button>
 
               <button 
                 onClick={() => { setActiveTab("disease"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "disease" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "disease" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <ShieldAlert className="w-4 h-4" /> Disease detection
               </button>
@@ -827,14 +980,14 @@ export default function App() {
 
               <button 
                 onClick={() => { setActiveTab("market"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "market" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "market" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <Globe className="w-4 h-4" /> Market wholesale Prices
               </button>
 
               <button 
                 onClick={() => { setActiveTab("reports"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "reports" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "reports" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 <PieChart className="w-4 h-4" /> Analytics Reports
               </button>
@@ -844,7 +997,7 @@ export default function App() {
                   <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2 font-semibold">Admin Core</div>
                   <button 
                     onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); }}
-                    className={`w-full text-left p-2.5 rounded-xl flex items-center gap-2.5 cursor-pointer ${activeTab === "admin" ? "bg-violet-900 text-slate-100 shadow-md shadow-black/10" : `text-white/75 hover:text-white`}`}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "admin" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
                   >
                     <ShieldCheck className="w-4 h-4" /> System Inspections
                   </button>
@@ -855,7 +1008,7 @@ export default function App() {
             <div className="border-t border-white/10 pt-4 flex flex-col gap-2 mx-1">
               <button 
                 onClick={() => { setActiveTab("profile"); setMobileMenuOpen(false); }}
-                className={`w-full text-left p-2 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ${activeTab === "profile" ? `bg-white/10 text-white` : `text-white/75 hover:text-white`}`}
+                className={`w-full text-left p-2 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ${activeTab === "profile" ? `${cTheme.sidebarActive} shadow-md` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
                 Manage User Profile & Themes
               </button>
@@ -918,6 +1071,59 @@ export default function App() {
             <span className="block text-[9px] uppercase font-bold text-white/60 font-mono tracking-wider">
               Role: {currentUser?.role}
             </span>
+          </div>
+
+          {/* Offline & Synchronization Indicator Widget */}
+          <div className="p-3 bg-black/20 rounded-xl space-y-2 border border-white/5 text-[11px] select-none">
+            <div className="flex items-center justify-between font-semibold">
+              <span className="text-white/65">Field Connection:</span>
+              {isOnline ? (
+                <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                  <Wifi className="w-3.5 h-3.5" />
+                  Online
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-amber-400 font-bold animate-pulse">
+                  <WifiOff className="w-3.5 h-3.5" />
+                  Offline
+                </span>
+              )}
+            </div>
+            
+            {pendingSyncCount > 0 ? (
+              <div className="space-y-1.5 pt-1 border-t border-white/5">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-amber-300 font-semibold font-mono animate-pulse">
+                    ● {pendingSyncCount} pending change{pendingSyncCount > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-white/50">Stored locally</span>
+                </div>
+                <button
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="w-full py-1.5 px-2 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-400 text-slate-950 font-bold text-[10px] uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md shadow-black/20 hover:scale-[1.02] cursor-pointer"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+                  {isSyncing ? "Syncing..." : "Sync Records"}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between pt-1 text-[10px] text-white/40 border-t border-white/5 font-mono">
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3 text-emerald-500" /> All records synced
+                </span>
+                {isOnline && (
+                  <button
+                    onClick={handleManualSync}
+                    disabled={isSyncing}
+                    className="hover:text-white transition-all p-0.5 cursor-pointer"
+                    title="Force Sync Update"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Navigation link block */}
@@ -1665,14 +1871,40 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Particulars description</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Particulars description</label>
+                      <div className="flex items-center gap-2">
+                        {isRecording && (
+                          <span className="flex items-center gap-1.5 text-[10px] text-rose-500 font-bold font-mono animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            Listening...
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={toggleSpeechRecognition}
+                          className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border transition-all cursor-pointer ${
+                            isRecording 
+                              ? "bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-300 animate-pulse" 
+                              : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 dark:border-slate-800 dark:text-slate-300"
+                          }`}
+                          title={isRecording ? "Stop dictation" : "Dictate with microphone"}
+                        >
+                          {isRecording ? <MicOff className="w-3 h-3 text-rose-500" /> : <Mic className="w-3 h-3 text-emerald-500" />}
+                          <span>{isRecording ? "Stop" : "Voice input"}</span>
+                        </button>
+                      </div>
+                    </div>
                     <textarea 
                       rows={2}
                       value={txDesc}
                       onChange={(e) => setTxDesc(e.target.value)}
-                      placeholder="Add specific details..."
+                      placeholder={isRecording ? "Listening to your voice... Speak clearly into your microphone." : "Add specific details..."}
                       className={getInputClass() + " cursor-text resize-none"}
                     ></textarea>
+                    {speechError && (
+                      <p className="text-[10px] text-rose-500 font-semibold font-mono mt-1 animate-pulse">{speechError}</p>
+                    )}
                   </div>
 
                   <button 
@@ -1766,46 +1998,66 @@ export default function App() {
             VIEW E: AI CROP SUITABILITY SUGGESTIONS
             ------------------------------------- */}
         {activeTab === "recommendation" && (
-          <div className="space-y-6 animate-fade-in-up">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">AI Crop Recommendations</h1>
               <p className="text-xs text-slate-500">Provide local soil profile and climate data to trigger Gemini and generate custom crop timelines with suitability scores</p>
             </div>
             <AIRecommenders authToken={authToken} defaultTab="crop" />
-          </div>
+          </motion.div>
         )}
 
         {/* -------------------------------------
             VIEW F: AI FERTILIZER CUSTOM SUGGESTIONS
             ------------------------------------- */}
         {activeTab === "fertilizer" && (
-          <div className="space-y-6 animate-fade-in-up">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Soil Nutrition & Fertilizer formulation</h1>
               <p className="text-xs text-slate-500">Analyze raw N-P-K (Nitrogen, Phosphorus, Potassium) test values and pH levels to let Gemini calculate chemical dosage instructions</p>
             </div>
             <AIRecommenders authToken={authToken} defaultTab="fertilizer" />
-          </div>
+          </motion.div>
         )}
 
         {/* -------------------------------------
             VIEW G: AI LEAF PATHOLOGY DISEASE DETECTOR
             ------------------------------------- */}
         {activeTab === "disease" && (
-          <div className="space-y-6 animate-fade-in-up">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-slate-905 dark:text-white">AI Crop Disease Leaf pathology scan</h1>
               <p className="text-xs text-slate-500">Snap or upload close-up specimen leaf images to diagnose fungal infections or blights and receive remedy lists instantly via Gemini vision neural systems.</p>
             </div>
             <AIDiseaseDetector authToken={authToken} />
-          </div>
+          </motion.div>
         )}
 
         {/* -------------------------------------
             VIEW H: REAL-TIME WHOLESALE MARKET PRICES CARD
             ------------------------------------- */}
         {activeTab === "market" && (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Wholesale Daily Crop Prices</h1>
               <p className="text-xs text-slate-500">Review spot prices across regions. Administrators are authorized to update daily rate cards.</p>
@@ -1815,20 +2067,25 @@ export default function App() {
               isAdmin={currentUser?.role === "admin"}
               onPriceUpdated={() => syncFarmingSystem()}
             />
-          </div>
+          </motion.div>
         )}
 
         {/* -------------------------------------
             VIEW I: DETAILED RECHARTS REPORTS
             ------------------------------------- */}
         {activeTab === "reports" && (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display">Advanced Analytics & Financial Reports</h1>
               <p className="text-xs text-slate-500">Visualizing compound yield expectations, monthly spending allocations, and overall profit margins</p>
             </div>
             <AnalyticsReports authToken={authToken} />
-          </div>
+          </motion.div>
         )}
 
         {/* -------------------------------------
@@ -1836,9 +2093,9 @@ export default function App() {
             ------------------------------------- */}
         {activeTab === "profile" && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto"
           >
             {/* Left Column: Traditional profile form */}
@@ -1886,7 +2143,7 @@ export default function App() {
                       value={profilePhone}
                       onChange={(e) => setProfilePhone(e.target.value)}
                       placeholder="+1 (555) 0122"
-                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-705 dark:text-slate-205 border border-slate-201 dark:border-slate-700 focus:outline-none"
+                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 focus:outline-none"
                     />
                   </div>
 
@@ -1897,7 +2154,7 @@ export default function App() {
                       value={profileAddress}
                       onChange={(e) => setProfileAddress(e.target.value)}
                       placeholder="Fields Block B, CA"
-                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-705 dark:text-slate-205 border border-slate-201 dark:border-slate-700 focus:outline-none"
+                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1909,7 +2166,7 @@ export default function App() {
                     value={profilePass}
                     onChange={(e) => setProfilePass(e.target.value)}
                     placeholder="Leave empty to maintain current password key"
-                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-705 dark:text-slate-205 border border-slate-201 dark:border-slate-700 focus:outline-none"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 focus:outline-none"
                   />
                 </div>
 
@@ -2016,32 +2273,41 @@ export default function App() {
                           <Monitor className="w-5 h-5 stroke-1" />
                         </div>
                       )}
-                      <span className="text-[11px] font-bold text-slate-705 dark:text-slate-200">System Mode</span>
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">System Mode</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Choose Icon Aesthetic (Two types of icons) */}
+                {/* Choose Icon Aesthetic (Three types of icons) */}
                 <div className="space-y-3 pt-6 border-t border-slate-50 dark:border-slate-800 mt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono block">3. Toggle Icon Preset Style</span>
-                      <p className="text-[10px] text-slate-450 dark:text-slate-400">Choose between minimalist outlines or vibrant colorful glows.</p>
+                      <p className="text-[10px] text-slate-450 dark:text-slate-400">Choose between minimalist outlines, vibrant colorful glows, or warm duotones.</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
                     <button
                       onClick={() => setIconStyle("glow")}
-                      className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold cursor-pointer transition-all ${iconStyle === "glow" ? "bg-slate-50 border-slate-905 dark:bg-slate-800 dark:border-slate-100" : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/20"}`}
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-xs font-bold cursor-pointer transition-all ${iconStyle === "glow" ? "bg-slate-50 border-slate-900 dark:bg-slate-800 dark:border-slate-100" : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/20"}`}
                     >
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-spin" /> Glow Colors Set
+                      <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
+                      <span className="text-[10px]">Glow Colors</span>
                     </button>
                     <button
                       onClick={() => setIconStyle("outlines")}
-                      className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold cursor-pointer transition-all ${iconStyle === "outlines" ? "bg-slate-50 border-slate-905 dark:bg-slate-800 dark:border-slate-100" : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/20"}`}
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-xs font-bold cursor-pointer transition-all ${iconStyle === "outlines" ? "bg-slate-50 border-slate-900 dark:bg-slate-800 dark:border-slate-100" : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/20"}`}
                     >
-                      <Laptop className="w-4 h-4 text-slate-500 stroke-1" /> Sleek Outlines Set
+                      <Laptop className="w-4 h-4 text-slate-500 stroke-1" />
+                      <span className="text-[10px]">Sleek Outline</span>
+                    </button>
+                    <button
+                      onClick={() => setIconStyle("duotone")}
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-xs font-bold cursor-pointer transition-all ${iconStyle === "duotone" ? "bg-slate-50 border-slate-900 dark:bg-slate-800 dark:border-slate-100" : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/20"}`}
+                    >
+                      <Sprout className="w-4 h-4 text-emerald-500" fill="currentColor" fillOpacity={0.3} />
+                      <span className="text-[10px]">Warm Duotone</span>
                     </button>
                   </div>
                 </div>
@@ -2050,7 +2316,7 @@ export default function App() {
               {/* Dynamic Theme Description Indicator */}
               <div className="bg-slate-50 dark:bg-slate-800/30 p-4 border border-slate-100 dark:border-slate-800 rounded-2xl text-center">
                 <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-                  ⚡ Accent layout currently binding to <strong className="text-emerald-500">{cTheme.name}</strong> using the <strong className="text-slate-800 dark:text-slate-200">{iconStyle === "glow" ? "Glow Solid" : "Minimalist Outline"}</strong> icon aesthetic style mode.
+                  ⚡ Accent layout currently binding to <strong className="text-emerald-500">{cTheme.name}</strong> using the <strong className="text-slate-800 dark:text-slate-200">{iconStyle === "glow" ? "Glow Solid" : iconStyle === "duotone" ? "Warm Duotone" : "Minimalist Outline"}</strong> icon aesthetic style mode.
                 </p>
               </div>
             </div>
@@ -2061,15 +2327,20 @@ export default function App() {
             VIEW K: PLATFORM SYSTEM INSPECTIONS (Admin only)
             ------------------------------------- */}
         {activeTab === "admin" && currentUser?.role === "admin" && (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.99, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-violet-905 dark:text-white">Admin System Inspections</h1>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-violet-900 dark:text-white">Admin System Inspections</h1>
                 <p className="text-xs text-slate-500">Monitor platform user registries, cascade resources clearings, or review database size specifications</p>
               </div>
               <button 
                 onClick={fetchAdminReports}
-                className="p-2 bg-white hover:bg-slate-55 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="p-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Pull admin logs
               </button>
@@ -2078,19 +2349,19 @@ export default function App() {
             {/* Diagnostic blocks */}
             {adminSystemMetrics && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-900 border border-slate-105 rounded-2xl p-4 space-y-1">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 rounded-2xl p-4 space-y-1">
                   <span className="text-[10px] text-slate-400 font-mono block">DB Space allocation</span>
-                  <span className="text-xl font-bold font-mono text-violet-650">{adminSystemMetrics.databaseSizeKB} KB</span>
+                  <span className="text-xl font-bold font-mono text-violet-600">{adminSystemMetrics.databaseSizeKB} KB</span>
                 </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-105 rounded-2xl p-4 space-y-1">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 rounded-2xl p-4 space-y-1">
                   <span className="text-[10px] text-slate-400 font-mono block">Registered Users Count</span>
-                  <span className="text-xl font-bold font-mono text-violet-650">{adminSystemMetrics.totalDatabaseUsers} Users</span>
+                  <span className="text-xl font-bold font-mono text-violet-600">{adminSystemMetrics.totalDatabaseUsers} Users</span>
                 </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-105 rounded-2xl p-4 space-y-1">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 rounded-2xl p-4 space-y-1">
                   <span className="text-[10px] text-slate-400 font-mono block">Disease history count</span>
-                  <span className="text-xl font-bold font-mono text-violet-650">{adminSystemMetrics.aiDiagnosticHistCount} scans</span>
+                  <span className="text-xl font-bold font-mono text-violet-600">{adminSystemMetrics.aiDiagnosticHistCount} scans</span>
                 </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-105 rounded-2xl p-4 space-y-1">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 rounded-2xl p-4 space-y-1">
                   <span className="text-[10px] text-slate-400 font-mono block">Server Environment Node</span>
                   <span className="text-xs font-mono font-bold uppercase text-emerald-600">{adminSystemMetrics.nodeEnvironment}</span>
                 </div>
@@ -2106,7 +2377,7 @@ export default function App() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left font-mono">
                   <thead>
-                    <tr className="border-b border-slate-150 uppercase tracking-wide text-slate-400 text-[10px]">
+                    <tr className="border-b border-slate-100 uppercase tracking-wide text-slate-400 text-[10px]">
                       <th className="py-2.5">User Details</th>
                       <th className="py-2.5">Email address</th>
                       <th className="py-2.5">Account Role</th>
@@ -2118,14 +2389,14 @@ export default function App() {
                       <tr key={u.id} className="hover:bg-slate-50/50">
                         <td className="py-3 font-semibold">
                           <div className="space-y-0.5 select-all">
-                            <span className="text-sm font-bold text-slate-905 block">{u.name}</span>
+                            <span className="text-sm font-bold text-slate-900 block">{u.name}</span>
                             <span className="text-[10px] text-slate-400 font-mono">{u.id} | {u.phone || "No Phone"}</span>
                           </div>
                         </td>
 
                         <td className="py-3 font-mono text-[11px] lowercase select-all">{u.email}</td>
                         <td className="py-3 shrink-0 uppercase font-mono text-[10px] font-bold">
-                          <span className={`px-2 py-0.5 rounded ${u.role === "admin" ? "bg-violet-100/50 text-violet-850" : "bg-emerald-100/70 text-emerald-805"}`}>
+                          <span className={`px-2 py-0.5 rounded ${u.role === "admin" ? "bg-violet-100/50 text-violet-800" : "bg-emerald-100/70 text-emerald-800"}`}>
                             {u.role}
                           </span>
                         </td>
@@ -2142,7 +2413,7 @@ export default function App() {
                               
                               <button 
                                 onClick={() => handleAdminDeleteUser(u.id)}
-                                className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-850 text-[10px] font-bold rounded cursor-pointer uppercase transition-colors"
+                                className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-[10px] font-bold rounded cursor-pointer uppercase transition-colors"
                               >
                                 Purge User
                               </button>
@@ -2155,7 +2426,7 @@ export default function App() {
                 </table>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
       </main>

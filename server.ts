@@ -1417,7 +1417,7 @@ Return exactly one JSON object following this JSON format:
   "recommendation": "expert selling/holding recommendation for the farmer"
 }`;
 
-      const response = await client.models.generateContent({
+      const response = await generateContentWithRetry(client, {
         model: "gemini-3.5-flash",
         contents: prompt,
         config: {
@@ -1447,10 +1447,10 @@ Return exactly one JSON object following this JSON format:
 
       res.json({ result: parsedResult });
     } catch (err: any) {
-      console.error("AI Market Search error:", err);
+      console.warn("AI Market Search fell back to query simulation. Reason:", err?.message || String(err));
       // Fallback response inside try catch block using helper to ensure we never display wrong or error messages
       const fallbackResult = parseAgriculturalQuery(query);
-      res.json({ result: fallbackResult, error: err.message });
+      res.json({ result: fallbackResult, error: err?.message || String(err), demoMode: true });
     }
   });
 
@@ -1528,7 +1528,7 @@ Ensure output is ONLY a valid JSON array, do not wrap in markdown quotes. Ensure
     }
 
     try {
-      const response = await client.models.generateContent({
+      const response = await generateContentWithRetry(client, {
         model: "gemini-3.5-flash",
         contents: userPrompt,
         config: {
@@ -1557,7 +1557,7 @@ Ensure output is ONLY a valid JSON array, do not wrap in markdown quotes. Ensure
       const parsed = JSON.parse(response.text.trim());
       res.json({ recommendations: parsed, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Crop API Error (falling back to simulation):", err);
+      console.warn("Gemini Crop API Error (falling back to simulation):", err?.message || String(err));
       const mockResult = [
         {
           cropName: `${season === "Spring" ? "Sorghum Grain" : "Autumn Rye"}`,
@@ -1652,7 +1652,7 @@ Generate valid JSON solely. Do not output surrounding markdown code blocks.`;
     }
 
     try {
-      const response = await client.models.generateContent({
+      const response = await generateContentWithRetry(client, {
         model: "gemini-3.5-flash",
         contents: userPrompt,
         config: {
@@ -1677,7 +1677,7 @@ Generate valid JSON solely. Do not output surrounding markdown code blocks.`;
       const parsed = JSON.parse(response.text.trim());
       res.json({ advice: parsed, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Fertilizer Error (falling back to simulation):", err);
+      console.warn("Gemini Fertilizer Error (falling back to simulation):", err?.message || String(err));
       const mockResult = {
         overallVerdict: `Your N-P-K metrics are moderately depleted. Nitrogen levels require organic supplementing to match targeted high yields of ${cropName}. (Using fallback simulation)`,
         fertilizerType: "Custom Balanced NPK (19-19-19) combined with organic humic acids",
@@ -2072,7 +2072,7 @@ Output EXACTLY this JSON structure. Ensure you synthesize highly realistic value
 Return valid schema-constrained JSON directly.`
       };
 
-      const response = await client.models.generateContent({
+      const response = await generateContentWithRetry(client, {
         model: "gemini-3.5-flash",
         contents: [imagePart, textPart],
         config: {
@@ -2154,7 +2154,7 @@ Return valid schema-constrained JSON directly.`
 
       res.json({ analysis: newLog, logged: newLog, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Disease Detection Error:", err);
+      console.warn("Gemini Disease Detection Error (falling back to simulation):", err?.message || String(err));
       // Failover safely to relevant high fidelity mockup so the farmer's flow does not crash
       console.warn("Failing over to custom mock library for user reliability.");
       const db = loadDB();
@@ -2226,7 +2226,7 @@ Detected Disease: ${diseaseContext?.diseaseName || "Unspecified"}
 Severity: ${diseaseContext?.severity || "Unspecified"}
 Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
 
-      const response = await client.models.generateContent({
+      const response = await generateContentWithRetry(client, {
         model: "gemini-3.5-flash",
         contents: [{ text: `The farmer asks: "${message}"` }],
         config: {
@@ -2237,7 +2237,7 @@ Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
 
       res.json({ reply: response.text, demoMode: false });
     } catch (err: any) {
-      console.error("Gemini Disease Chatbot Error (falling back to simulation):", err);
+      console.warn("Gemini Disease Chatbot Error (falling back to simulation):", err?.message || String(err));
       let responseMessage = "";
       const msgLower = message.toLowerCase();
       const diseaseName = diseaseContext?.diseaseName || "a crop disease";

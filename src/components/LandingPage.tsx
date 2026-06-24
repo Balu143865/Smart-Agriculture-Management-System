@@ -20,13 +20,24 @@ import {
   Activity,
   CheckCircle,
   HelpCircle,
-  Linkedin
+  Linkedin,
+  Palette,
+  Sun,
+  Moon,
+  Monitor,
+  Laptop
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface LandingPageProps {
   onGetStarted: () => void;
   onLoginClick: () => void;
+  iconStyle?: "outlines" | "glow" | "duotone";
+  setIconStyle?: (style: "outlines" | "glow" | "duotone") => void;
+  themeMode?: "light" | "dark" | "system";
+  changeThemeMode?: (mode: "light" | "dark" | "system", e?: React.MouseEvent) => void;
+  accentColor?: "emerald" | "forest" | "blue" | "teal" | "amber" | "violet" | "rose";
+  setAccentColor?: (color: "emerald" | "forest" | "blue" | "teal" | "amber" | "violet" | "rose") => void;
 }
 
 const suiteContainerVariants = {
@@ -54,7 +65,17 @@ const suiteItemVariants = {
   },
 };
 
-export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageProps) {
+export default function LandingPage({ 
+  onGetStarted, 
+  onLoginClick,
+  iconStyle = "glow",
+  setIconStyle,
+  themeMode = "system",
+  changeThemeMode,
+  accentColor = "emerald",
+  setAccentColor
+}: LandingPageProps) {
+  const [showCustomizer, setShowCustomizer] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", msg: "" });
@@ -129,34 +150,53 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
     }
   };
 
+  const getFeatureIcon = (name: string) => {
+    let IconComp = TrendingUp;
+    if (name === "Real-time Analytics") IconComp = TrendingUp;
+    else if (name === "Weather Telemetry") IconComp = CloudSun;
+    else if (name === "AI Crop Recommendations") IconComp = Sprout;
+    else if (name === "AI Disease Detection") IconComp = ShieldAlert;
+    else if (name === "Fertilizer suggestion") IconComp = Droplet;
+    else if (name === "Market Price Tracker") IconComp = Globe;
+
+    if (iconStyle === "glow") {
+      return <IconComp className="w-6 h-6 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" fill="currentColor" />;
+    } else if (iconStyle === "duotone") {
+      return <IconComp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" fillOpacity={0.3} />;
+    } else {
+      // outlines
+      return <IconComp className="w-6 h-6 text-slate-700 dark:text-slate-350 stroke-[1.5]" />;
+    }
+  };
+
   const features = [
     {
-      icon: <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "Real-time Analytics",
       title: "Real-time Analytics",
       desc: "Track custom income budgets, detailed seed expenditures, and seasonal yields with visual telemetry charts."
     },
     {
-      icon: <CloudSun className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "Weather Telemetry",
       title: "Weather Telemetry",
       desc: "Instant 7-day soil moisture outlooks and customizable agronomist advice based on local frost and heat thresholds."
     },
     {
-      icon: <Sprout className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "AI Crop Recommendations",
       title: "AI Crop Recommendations",
       desc: "Submit soil variables, precipitation data, and seasonal limits to let Gemini select high-yield crop seeds."
     },
     {
-      icon: <ShieldAlert className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "AI Disease Detection",
       title: "AI Disease Detection",
       desc: "Simply snap leaf pictures of damaged plants and receive instant diagnoses and safe botanical medicine recommendations."
     },
     {
-      icon: <Droplet className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "Fertilizer suggestion",
       title: "Fertilizer suggestion",
       desc: "Analyze your N-P-K metrics and pH balance to compute appropriate dosage advice and maximize harvest success."
     },
     {
-      icon: <Globe className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
+      key: "Market Price Tracker",
       title: "Market Price Tracker",
       desc: "Follow regional market trends, search current wholesale grain benchmarks, and optimize crop selling timing."
     }
@@ -201,9 +241,34 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="hidden md:flex items-center gap-4"
           >
+            {/* Real-time landing page icon theme switcher */}
+            <div className="flex items-center gap-1 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700/50 mr-2 text-[10px] font-bold select-none">
+              <button
+                onClick={() => setIconStyle?.("outlines")}
+                title="Sleek Outlines Style"
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${iconStyle === "outlines" ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+              >
+                Outline
+              </button>
+              <button
+                onClick={() => setIconStyle?.("glow")}
+                title="Vibrant Glow Style"
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${iconStyle === "glow" ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+              >
+                Glow
+              </button>
+              <button
+                onClick={() => setIconStyle?.("duotone")}
+                title="Warm Duotone Style"
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${iconStyle === "duotone" ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+              >
+                Duotone
+              </button>
+            </div>
+
             <button 
               onClick={onLoginClick}
-              className="text-sm font-medium px-4 py-2 text-slate-705 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors"
+              className="text-sm font-medium px-4 py-2 text-slate-700 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors cursor-pointer"
             >
               Sign In
             </button>
@@ -211,7 +276,7 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={onGetStarted}
-              className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-600/10 hover:shadow-emerald-650/20 transition-all"
+              className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all cursor-pointer"
             >
               Join Platform
             </motion.button>
@@ -591,7 +656,7 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
                 className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm"
               >
                 <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 rounded-xl flex items-center justify-center mb-5">
-                  {feat.icon}
+                  {getFeatureIcon(feat.key)}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 font-display">{feat.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{feat.desc}</p>
@@ -878,6 +943,112 @@ export default function LandingPage({ onGetStarted, onLoginClick }: LandingPageP
           </div>
         </div>
       </footer>
+
+      {/* Dynamic Style Customizer Drawer Toggle Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowCustomizer(!showCustomizer)}
+          className="p-4 bg-emerald-600 text-white rounded-full shadow-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all font-semibold text-xs cursor-pointer border-0"
+        >
+          <Palette className="w-5 h-5 animate-bounce" />
+          <span className="hidden sm:inline font-sans">Customize Aesthetics</span>
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {showCustomizer && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+            className="fixed bottom-24 right-6 z-50 w-80 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-5"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-500" />
+                <span className="font-bold text-sm text-slate-900 dark:text-white">Aesthetic Controls</span>
+              </div>
+              <button 
+                onClick={() => setShowCustomizer(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Icon theme style selector */}
+            <div className="space-y-2">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">1. Choose Icon Style</span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: "outlines", label: "Outline", icon: <Laptop className="w-3.5 h-3.5" /> },
+                  { id: "glow", label: "Glow", icon: <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" /> },
+                  { id: "duotone", label: "Duotone", icon: <Sprout className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" fillOpacity={0.3} /> }
+                ].map((style) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setIconStyle?.(style.id as any)}
+                    className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${iconStyle === style.id ? "bg-emerald-50/50 border-emerald-500 text-emerald-700 dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100" : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
+                  >
+                    {style.icon}
+                    <span>{style.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dark/Light mode selector */}
+            <div className="space-y-2">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">2. Mode Selector</span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: "light", label: "Light", icon: <Sun className="w-3.5 h-3.5 text-amber-500" /> },
+                  { id: "dark", label: "Dark", icon: <Moon className="w-3.5 h-3.5 text-indigo-400" /> },
+                  { id: "system", label: "System", icon: <Monitor className="w-3.5 h-3.5 text-teal-500" /> }
+                ].map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={(e) => changeThemeMode?.(mode.id as any, e)}
+                    className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${themeMode === mode.id ? "bg-emerald-50/50 border-emerald-500 text-emerald-700 dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100" : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
+                  >
+                    {mode.icon}
+                    <span>{mode.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accent Color switcher */}
+            <div className="space-y-2">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">3. Brand Accent Color</span>
+              <div className="flex flex-wrap gap-2 pt-1 justify-center">
+                {[
+                  { id: "emerald", color: "bg-emerald-500" },
+                  { id: "forest", color: "bg-emerald-800" },
+                  { id: "blue", color: "bg-blue-500" },
+                  { id: "teal", color: "bg-teal-500" },
+                  { id: "amber", color: "bg-amber-500" },
+                  { id: "violet", color: "bg-violet-500" },
+                  { id: "rose", color: "bg-rose-500" }
+                ].map((col) => (
+                  <button
+                    key={col.id}
+                    onClick={() => setAccentColor?.(col.id as any)}
+                    className={`w-6 h-6 rounded-full ${col.color} border-2 transition-transform cursor-pointer hover:scale-110 ${accentColor === col.id ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
+                    title={col.id}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <div className="text-[9px] text-slate-400 dark:text-slate-500 text-center font-mono pt-1 border-t border-slate-100 dark:border-slate-800">
+              Changes propagate instantly.
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
