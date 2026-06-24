@@ -700,38 +700,37 @@ async function generateContentWithRetry(client: any, options: { model?: string; 
 }
 
 // Express App Configuration
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+export { app };
 
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // JWT Verification Middleware
-  const authenticateToken = (req: any, res: any, next: any) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+// JWT Verification Middleware
+const authenticateToken = (req: any, res: any, next: any) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-    if (!token) {
-      return res.status(401).json({ error: "Access token is missing" });
+  if (!token) {
+    return res.status(401).json({ error: "Access token is missing" });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    if (err) {
+      return res.status(403).json({ error: "Expired or invalid token" });
     }
-
-    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-      if (err) {
-        return res.status(403).json({ error: "Expired or invalid token" });
-      }
-      req.user = user;
-      next();
-    });
-  };
-
-  // JWT Admin Check middleware
-  const requireAdmin = (req: any, res: any, next: any) => {
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ error: "Administrator rights required" });
-    }
+    req.user = user;
     next();
-  };
+  });
+};
+
+// JWT Admin Check middleware
+const requireAdmin = (req: any, res: any, next: any) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ error: "Administrator rights required" });
+  }
+  next();
+};
 
   // ==========================================
   // AUTH ROUTES
@@ -2438,6 +2437,8 @@ Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
   // VITE SERVICE MOUNT
   // ==========================================
 
+async function startStandaloneServer() {
+  const PORT = 3000;
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -2457,4 +2458,6 @@ Treatments: ${(diseaseContext?.treatmentMethods || []).join(", ")}`;
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startStandaloneServer();
+}
