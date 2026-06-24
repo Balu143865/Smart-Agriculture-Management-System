@@ -8,12 +8,6 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/a2a89e77-e353-4935-995b-cd54c0e91e64
 
-published URL: https://smart-agriculture-management-system-1013058996445.asia-southeast1.run.app
-
-vercel deployed:
-
-URL: https://smart-agriculture-management-system-two.vercel.app/
-
 ## Run Locally
 
 **Prerequisites:**  Node.js

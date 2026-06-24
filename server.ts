@@ -7,8 +7,9 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Ensure data folder exists
-const DATA_DIR = path.join(process.cwd(), "db-data");
-if (!fs.existsSync(DATA_DIR)) {
+const isVercel = !!process.env.VERCEL;
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "db-data");
+if (!isVercel && !fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
@@ -599,6 +600,16 @@ const DEFAULT_DATABASE: Database = {
 // Database utility functions
 const loadDB = (): Database => {
   try {
+    if (isVercel && !fs.existsSync(DB_FILE)) {
+      const sourceDbFile = path.join(process.cwd(), "db-data", "db.json");
+      if (fs.existsSync(sourceDbFile)) {
+        try {
+          fs.copyFileSync(sourceDbFile, DB_FILE);
+        } catch (copyErr) {
+          console.error("Error copying database seed file to /tmp:", copyErr);
+        }
+      }
+    }
     if (!fs.existsSync(DB_FILE)) {
       fs.writeFileSync(DB_FILE, JSON.stringify(DEFAULT_DATABASE, null, 2), "utf8");
       return DEFAULT_DATABASE;
