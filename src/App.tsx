@@ -243,6 +243,35 @@ export default function App() {
   const [iconStyle, setIconStyle] = useState<"outlines" | "glow" | "duotone">(() => {
     return (localStorage.getItem("theme-icon-style") as any) || "glow";
   });
+
+  const renderIconWithStyle = (IconComponent: any, sizeClass = "w-4 h-4", isWhiteBg = false, customColor?: string) => {
+    if (iconStyle === "glow") {
+      const colorClass = customColor || (isWhiteBg ? "text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]" : "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.5)]");
+      return (
+        <IconComponent 
+          className={`${sizeClass} ${colorClass} animate-pulse`} 
+          fill="currentColor" 
+        />
+      );
+    } else if (iconStyle === "duotone") {
+      const colorClass = customColor || (isWhiteBg ? "text-emerald-600 dark:text-emerald-400" : "text-emerald-300");
+      return (
+        <IconComponent 
+          className={`${sizeClass} ${colorClass}`} 
+          fill="currentColor" 
+          fillOpacity={0.3} 
+        />
+      );
+    } else {
+      // outlines
+      const colorClass = customColor || (isWhiteBg ? "text-slate-700 dark:text-slate-300 stroke-[1.5]" : "text-white/80 stroke-[1.5]");
+      return (
+        <IconComponent 
+          className={`${sizeClass} ${colorClass}`} 
+        />
+      );
+    }
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingOverlay, setLoadingOverlay] = useState(false);
   const isInitialMount = useRef(true);
@@ -929,28 +958,28 @@ export default function App() {
                 onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "overview" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <Compass className="w-4 h-4" /> Operations Overview
+                {renderIconWithStyle(Compass)} Operations Overview
               </button>
 
               <button 
                 onClick={() => { setActiveTab("farms"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "farms" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <MapPin className="w-4 h-4" /> Farm Registries
+                {renderIconWithStyle(MapPin)} Farm Registries
               </button>
 
               <button 
                 onClick={() => { setActiveTab("crops"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "crops" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <Layers className="w-4 h-4" /> Crop Timelines
+                {renderIconWithStyle(Layers)} Crop Timelines
               </button>
 
               <button 
                 onClick={() => { setActiveTab("operations"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "operations" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <TrendingUp className="w-4 h-4" /> Operating Budget
+                {renderIconWithStyle(TrendingUp)} Operating Budget
               </button>
 
               <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">AI Solvers</div>
@@ -959,21 +988,21 @@ export default function App() {
                 onClick={() => { setActiveTab("recommendation"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "recommendation" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <Sprout className="w-4 h-4" /> Crop SUITABILITY
+                {renderIconWithStyle(Sprout)} Crop SUITABILITY
               </button>
 
               <button 
                 onClick={() => { setActiveTab("fertilizer"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "fertilizer" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <Droplet className="w-4 h-4" /> Fertilizer SUGGESTION
+                {renderIconWithStyle(Droplet)} Fertilizer SUGGESTION
               </button>
 
               <button 
                 onClick={() => { setActiveTab("disease"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "disease" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <ShieldAlert className="w-4 h-4" /> Disease detection
+                {renderIconWithStyle(ShieldAlert)} Disease detection
               </button>
 
               <div className="border-t border-white/10 my-1 pt-2 text-[9px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">Pricing & Reports</div>
@@ -982,14 +1011,14 @@ export default function App() {
                 onClick={() => { setActiveTab("market"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "market" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <Globe className="w-4 h-4" /> Market wholesale Prices
+                {renderIconWithStyle(Globe)} Market wholesale Prices
               </button>
 
               <button 
                 onClick={() => { setActiveTab("reports"); setMobileMenuOpen(false); }}
                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "reports" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
               >
-                <PieChart className="w-4 h-4" /> Analytics Reports
+                {renderIconWithStyle(PieChart)} Analytics Reports
               </button>
 
               {currentUser?.role === "admin" && (
@@ -999,7 +1028,7 @@ export default function App() {
                     onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); }}
                     className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 flex items-center gap-2.5 cursor-pointer ${activeTab === "admin" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
                   >
-                    <ShieldCheck className="w-4 h-4" /> System Inspections
+                    {renderIconWithStyle(ShieldCheck)} System Inspections
                   </button>
                 </>
               )}
@@ -1132,28 +1161,28 @@ export default function App() {
               onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "overview" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <Compass className="w-4 h-4" /> Operations Overview
+              {renderIconWithStyle(Compass)} Operations Overview
             </button>
 
             <button 
               onClick={() => { setActiveTab("farms"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "farms" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <MapPin className="w-4 h-4" /> Farm Registries
+              {renderIconWithStyle(MapPin)} Farm Registries
             </button>
 
             <button 
               onClick={() => { setActiveTab("crops"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "crops" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <Layers className="w-4 h-4" /> Crop Timelines
+              {renderIconWithStyle(Layers)} Crop Timelines
             </button>
 
             <button 
               onClick={() => { setActiveTab("operations"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "operations" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <TrendingUp className="w-4 h-4" /> Operating Budget
+              {renderIconWithStyle(TrendingUp)} Operating Budget
             </button>
 
             <div className="border-t border-white/10 my-2 pt-2 text-[10px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">AI Solvers</div>
@@ -1162,21 +1191,21 @@ export default function App() {
               onClick={() => { setActiveTab("recommendation"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "recommendation" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <Sprout className="w-4 h-4" /> Crop SUITABILITY
+              {renderIconWithStyle(Sprout)} Crop SUITABILITY
             </button>
 
             <button 
               onClick={() => { setActiveTab("fertilizer"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "fertilizer" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <Droplet className="w-4 h-4" /> Fertilizer SUGGESTION
+              {renderIconWithStyle(Droplet)} Fertilizer SUGGESTION
             </button>
 
             <button 
               onClick={() => { setActiveTab("disease"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "disease" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <ShieldAlert className="w-4 h-4" /> Disease detection
+              {renderIconWithStyle(ShieldAlert)} Disease detection
             </button>
 
             <div className="border-t border-white/10 my-2 pt-2 text-[10px] text-white/50 font-mono uppercase font-bold tracking-widest pl-2">Pricing & Reports</div>
@@ -1185,14 +1214,14 @@ export default function App() {
               onClick={() => { setActiveTab("market"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "market" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <Globe className="w-4 h-4" /> Market wholesale Prices
+              {renderIconWithStyle(Globe)} Market wholesale Prices
             </button>
 
             <button 
               onClick={() => { setActiveTab("reports"); setMobileMenuOpen(false); }}
               className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "reports" ? `${cTheme.sidebarActive} shadow-md shadow-black/10 scale-[1.02]` : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
             >
-              <PieChart className="w-4 h-4" /> Analytics Reports
+              {renderIconWithStyle(PieChart)} Analytics Reports
             </button>
 
             {currentUser?.role === "admin" && (
@@ -1202,7 +1231,7 @@ export default function App() {
                   onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); }}
                   className={`w-full text-left p-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === "admin" ? "bg-violet-900 text-slate-100 shadow-md shadow-black/10" : `text-white/75 hover:text-white ${cTheme.sidebarHover}`}`}
                 >
-                  <ShieldCheck className="w-4 h-4" /> System Inspections
+                  {renderIconWithStyle(ShieldCheck)} System Inspections
                 </button>
               </>
             )}
@@ -1284,7 +1313,7 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Quick farm assets</span>
                     <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400">
-                      <MapPin className="w-5 h-5" />
+                      {renderIconWithStyle(MapPin, "w-5 h-5", true, iconStyle === "glow" ? "text-sky-500 drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]" : undefined)}
                     </div>
                   </div>
                   <div>
@@ -1307,7 +1336,7 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Active Crops</span>
                     <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                      <Sprout className="w-5 h-5" />
+                      {renderIconWithStyle(Sprout, "w-5 h-5", true, iconStyle === "glow" ? "text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]" : undefined)}
                     </div>
                   </div>
                   <div>
@@ -1332,7 +1361,7 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-extrabold text-slate-400 font-mono tracking-wider">Financial Net balance</span>
                     <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400">
-                      <TrendingUp className="w-5 h-5" />
+                      {renderIconWithStyle(TrendingUp, "w-5 h-5", true, iconStyle === "glow" ? "text-teal-500 drop-shadow-[0_0_6px_rgba(20,184,166,0.5)]" : undefined)}
                     </div>
                   </div>
                   <div>

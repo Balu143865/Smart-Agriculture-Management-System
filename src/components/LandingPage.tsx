@@ -65,6 +65,156 @@ const suiteItemVariants = {
   },
 };
 
+const ACCENT_THEMES = {
+  emerald: {
+    text: "text-emerald-600 dark:text-emerald-400",
+    textHover: "hover:text-emerald-600 dark:hover:text-emerald-400",
+    textMuted: "text-emerald-800 dark:text-emerald-400",
+    textLight: "text-emerald-300 dark:text-emerald-450",
+    bg: "bg-emerald-600",
+    bgHover: "hover:bg-emerald-700",
+    bgLight: "bg-emerald-50 dark:bg-emerald-950/40",
+    border: "border-emerald-500",
+    borderLight: "border-emerald-100 dark:border-emerald-900/30",
+    shadow: "shadow-emerald-600/10",
+    glowColor: "rgba(16, 185, 129, 0.5)",
+    glowText: "text-emerald-500",
+    ring: "focus:ring-emerald-500",
+    bgSection: "bg-emerald-800",
+    textSection: "text-emerald-50",
+    accentTextSection: "text-emerald-200",
+    accentBgSection: "bg-emerald-700",
+    bgHeroGradient: "bg-emerald-500/5",
+    hoverBgLight: "hover:bg-emerald-600/20 hover:text-emerald-400 hover:border-emerald-500/30",
+  },
+  forest: {
+    text: "text-emerald-750 dark:text-emerald-400",
+    textHover: "hover:text-emerald-750 dark:hover:text-emerald-400",
+    textMuted: "text-emerald-850 dark:text-emerald-400",
+    textLight: "text-emerald-300 dark:text-emerald-400",
+    bg: "bg-emerald-800",
+    bgHover: "hover:bg-emerald-900",
+    bgLight: "bg-stone-100 dark:bg-stone-900/40",
+    border: "border-stone-500 dark:border-emerald-500",
+    borderLight: "border-stone-200 dark:border-stone-800",
+    shadow: "shadow-stone-600/10",
+    glowColor: "rgba(16, 185, 129, 0.5)",
+    glowText: "text-emerald-400",
+    ring: "focus:ring-stone-500",
+    bgSection: "bg-stone-900",
+    textSection: "text-stone-50",
+    accentTextSection: "text-emerald-350",
+    accentBgSection: "bg-stone-800",
+    bgHeroGradient: "bg-emerald-600/5",
+    hoverBgLight: "hover:bg-stone-900/20 hover:text-emerald-400 hover:border-stone-500/30",
+  },
+  blue: {
+    text: "text-blue-600 dark:text-blue-400",
+    textHover: "hover:text-blue-600 dark:hover:text-blue-400",
+    textMuted: "text-blue-800 dark:text-blue-400",
+    textLight: "text-blue-300 dark:text-blue-400",
+    bg: "bg-blue-600",
+    bgHover: "hover:bg-blue-700",
+    bgLight: "bg-blue-50 dark:bg-blue-950/40",
+    border: "border-blue-500",
+    borderLight: "border-blue-100 dark:border-blue-900/30",
+    shadow: "shadow-blue-600/10",
+    glowColor: "rgba(59, 130, 246, 0.5)",
+    glowText: "text-blue-500",
+    ring: "focus:ring-blue-500",
+    bgSection: "bg-blue-800",
+    textSection: "text-blue-50",
+    accentTextSection: "text-blue-200",
+    accentBgSection: "bg-blue-700",
+    bgHeroGradient: "bg-blue-500/5",
+    hoverBgLight: "hover:bg-blue-600/20 hover:text-blue-400 hover:border-blue-500/30",
+  },
+  teal: {
+    text: "text-teal-600 dark:text-teal-400",
+    textHover: "hover:text-teal-600 dark:hover:text-teal-400",
+    textMuted: "text-teal-800 dark:text-teal-400",
+    textLight: "text-teal-300 dark:text-teal-400",
+    bg: "bg-teal-600",
+    bgHover: "hover:bg-teal-700",
+    bgLight: "bg-teal-50 dark:bg-teal-950/40",
+    border: "border-teal-500",
+    borderLight: "border-teal-100 dark:border-teal-900/30",
+    shadow: "shadow-teal-600/10",
+    glowColor: "rgba(20, 184, 166, 0.5)",
+    glowText: "text-teal-500",
+    ring: "focus:ring-teal-500",
+    bgSection: "bg-teal-800",
+    textSection: "text-teal-50",
+    accentTextSection: "text-teal-200",
+    accentBgSection: "bg-teal-700",
+    bgHeroGradient: "bg-teal-500/5",
+    hoverBgLight: "hover:bg-teal-600/20 hover:text-teal-400 hover:border-teal-500/30",
+  },
+  amber: {
+    text: "text-amber-600 dark:text-amber-400",
+    textHover: "hover:text-amber-600 dark:hover:text-amber-400",
+    textMuted: "text-amber-850 dark:text-amber-400",
+    textLight: "text-amber-300 dark:text-amber-400",
+    bg: "bg-amber-600",
+    bgHover: "hover:bg-amber-700",
+    bgLight: "bg-amber-50 dark:bg-amber-950/40",
+    border: "border-amber-500",
+    borderLight: "border-amber-100 dark:border-amber-900/30",
+    shadow: "shadow-amber-600/10",
+    glowColor: "rgba(245, 158, 11, 0.5)",
+    glowText: "text-amber-500",
+    ring: "focus:ring-amber-500",
+    bgSection: "bg-amber-800",
+    textSection: "text-amber-50",
+    accentTextSection: "text-amber-200",
+    accentBgSection: "bg-amber-700",
+    bgHeroGradient: "bg-amber-500/5",
+    hoverBgLight: "hover:bg-amber-600/20 hover:text-amber-400 hover:border-amber-500/30",
+  },
+  violet: {
+    text: "text-violet-600 dark:text-violet-400",
+    textHover: "hover:text-violet-600 dark:hover:text-violet-400",
+    textMuted: "text-violet-850 dark:text-violet-400",
+    textLight: "text-violet-300 dark:text-violet-400",
+    bg: "bg-violet-600",
+    bgHover: "hover:bg-violet-700",
+    bgLight: "bg-violet-50 dark:bg-violet-950/40",
+    border: "border-violet-500",
+    borderLight: "border-violet-100 dark:border-violet-900/30",
+    shadow: "shadow-violet-600/10",
+    glowColor: "rgba(139, 92, 246, 0.5)",
+    glowText: "text-violet-500",
+    ring: "focus:ring-violet-500",
+    bgSection: "bg-violet-800",
+    textSection: "text-violet-50",
+    accentTextSection: "text-violet-200",
+    accentBgSection: "bg-violet-700",
+    bgHeroGradient: "bg-violet-500/5",
+    hoverBgLight: "hover:bg-violet-600/20 hover:text-violet-400 hover:border-violet-500/30",
+  },
+  rose: {
+    text: "text-rose-600 dark:text-rose-450",
+    textHover: "hover:text-rose-600 dark:hover:text-rose-400",
+    textMuted: "text-rose-850 dark:text-rose-450",
+    textLight: "text-rose-300 dark:text-rose-400",
+    bg: "bg-rose-600",
+    bgHover: "hover:bg-rose-700",
+    bgLight: "bg-rose-50 dark:bg-rose-950/40",
+    border: "border-rose-500",
+    borderLight: "border-rose-100 dark:border-rose-900/30",
+    shadow: "shadow-rose-600/10",
+    glowColor: "rgba(244, 63, 94, 0.5)",
+    glowText: "text-rose-500",
+    ring: "focus:ring-rose-500",
+    bgSection: "bg-rose-800",
+    textSection: "text-rose-50",
+    accentTextSection: "text-rose-200",
+    accentBgSection: "bg-rose-700",
+    bgHeroGradient: "bg-rose-500/5",
+    hoverBgLight: "hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30",
+  }
+};
+
 export default function LandingPage({ 
   onGetStarted, 
   onLoginClick,
@@ -75,6 +225,8 @@ export default function LandingPage({
   accentColor = "emerald",
   setAccentColor
 }: LandingPageProps) {
+  const lTheme = ACCENT_THEMES[accentColor] || ACCENT_THEMES.emerald;
+
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -160,9 +312,9 @@ export default function LandingPage({
     else if (name === "Market Price Tracker") IconComp = Globe;
 
     if (iconStyle === "glow") {
-      return <IconComp className="w-6 h-6 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" fill="currentColor" />;
+      return <IconComp className={`w-6 h-6 ${lTheme.text} animate-pulse`} style={{ filter: `drop-shadow(0px 0px 8px ${lTheme.glowColor})` }} fill="currentColor" />;
     } else if (iconStyle === "duotone") {
-      return <IconComp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" fillOpacity={0.3} />;
+      return <IconComp className={`w-6 h-6 ${lTheme.text}`} fill="currentColor" fillOpacity={0.3} />;
     } else {
       // outlines
       return <IconComp className="w-6 h-6 text-slate-700 dark:text-slate-350 stroke-[1.5]" />;
@@ -214,11 +366,17 @@ export default function LandingPage({
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="flex items-center gap-2"
           >
-            <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-md shadow-emerald-600/10 dark:shadow-none">
-              <Sprout className="w-5.5 h-5.5" />
+            <div className={`p-2.5 ${lTheme.bg} rounded-xl text-white shadow-md ${lTheme.shadow} dark:shadow-none flex items-center justify-center`}>
+              {iconStyle === "glow" ? (
+                <Sprout className="w-5.5 h-5.5 text-amber-350 drop-shadow-[0_0_6px_rgba(252,211,77,0.5)] animate-pulse" fill="currentColor" />
+              ) : iconStyle === "duotone" ? (
+                <Sprout className="w-5.5 h-5.5 text-white/90" fill="currentColor" fillOpacity={0.4} />
+              ) : (
+                <Sprout className="w-5.5 h-5.5 text-white stroke-[1.5]" />
+              )}
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
-              Agri<span className="text-emerald-600 dark:text-emerald-400">Smart</span>
+              Agri<span className={lTheme.text}>Smart</span>
             </span>
           </motion.div>
 
@@ -229,10 +387,10 @@ export default function LandingPage({
             transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
             className="hidden md:flex items-center gap-8"
           >
-            <a href="#features" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Features</a>
-            <a href="#about" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">About</a>
-            <a href="#stats" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Impact Indicators</a>
-            <a href="#contact" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-350 dark:hover:text-emerald-400 transition-colors">Contact</a>
+            <a href="#features" className={`text-sm font-medium text-slate-600 ${lTheme.textHover} dark:text-slate-350 transition-colors`}>Features</a>
+            <a href="#about" className={`text-sm font-medium text-slate-600 ${lTheme.textHover} dark:text-slate-350 transition-colors`}>About</a>
+            <a href="#stats" className={`text-sm font-medium text-slate-600 ${lTheme.textHover} dark:text-slate-350 transition-colors`}>Impact Indicators</a>
+            <a href="#contact" className={`text-sm font-medium text-slate-600 ${lTheme.textHover} dark:text-slate-350 transition-colors`}>Contact</a>
           </motion.div>
 
           <motion.div 
@@ -253,7 +411,7 @@ export default function LandingPage({
               <button
                 onClick={() => setIconStyle?.("glow")}
                 title="Vibrant Glow Style"
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${iconStyle === "glow" ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${iconStyle === "glow" ? `bg-white dark:bg-slate-900 ${lTheme.text} shadow-xs` : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
               >
                 Glow
               </button>
@@ -268,7 +426,7 @@ export default function LandingPage({
 
             <button 
               onClick={onLoginClick}
-              className="text-sm font-medium px-4 py-2 text-slate-700 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              className={`text-sm font-medium px-4 py-2 text-slate-700 ${lTheme.textHover} dark:text-slate-300 transition-colors cursor-pointer`}
             >
               Sign In
             </button>
@@ -276,7 +434,7 @@ export default function LandingPage({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={onGetStarted}
-              className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all cursor-pointer"
+              className={`text-sm font-semibold ${lTheme.bg} text-white px-5 py-2.5 rounded-xl ${lTheme.bgHover} shadow-md ${lTheme.shadow} hover:shadow-lg transition-all cursor-pointer`}
             >
               Join Platform
             </motion.button>
@@ -337,7 +495,7 @@ export default function LandingPage({
               </button>
               <button 
                 onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}
-                className="w-full text-center py-2 bg-emerald-600 text-white font-semibold rounded-lg"
+                className={`w-full text-center py-2 ${lTheme.bg} hover:opacity-90 text-white font-semibold rounded-lg`}
               >
                 Join Platform
               </button>
@@ -347,11 +505,10 @@ export default function LandingPage({
       </nav>
 
       {/* 2. Hero Section */}
-      <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden bg-gradient-to-br from-emerald-50/70 via-teal-50/20 to-lime-50/40 dark:from-slate-950 dark:via-emerald-950/10 dark:to-teal-950/20">
+      <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-200/20 dark:from-slate-950 dark:via-slate-900/60 dark:to-slate-950">
         <div className="absolute inset-0 z-0 opacity-40 dark:opacity-20 pointer-events-none">
-          {/* Subtle nature grid pattern */}
-          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-emerald-300/40 blur-3xl dark:bg-emerald-900/20"></div>
-          <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-lime-300/30 blur-3xl dark:bg-lime-900/10"></div>
+          {/* Subtle dynamic glow pattern */}
+          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ backgroundColor: lTheme.glowColor }}></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -362,9 +519,15 @@ export default function LandingPage({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100 rounded-full text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider"
+              className={`inline-flex items-center gap-2 px-3 py-1.5 ${lTheme.bgLight} rounded-full ${lTheme.text} text-xs font-semibold uppercase tracking-wider`}
             >
-              <Zap className="w-3.5 h-3.5 fill-emerald-500 text-emerald-600 dark:text-emerald-300" /> Advanced Gemini-AI Agricultural Core
+              {iconStyle === "glow" ? (
+                <Zap className="w-3.5 h-3.5 text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.5)] animate-pulse" fill="currentColor" />
+              ) : iconStyle === "duotone" ? (
+                <Zap className={`w-3.5 h-3.5 ${lTheme.text}`} fill="currentColor" fillOpacity={0.3} />
+              ) : (
+                <Zap className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300 stroke-[1.5]" />
+              )} Advanced Gemini-AI Agricultural Core
             </motion.div>
             
             <motion.h1 
@@ -374,7 +537,7 @@ export default function LandingPage({
               className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] font-display"
             >
               Smart Analytics for <br/>
-              <span className="text-emerald-600 dark:text-emerald-450 bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">High-Yield Farming</span>
+              <span className={`${lTheme.text}`}>High-Yield Farming</span>
             </motion.h1>
             
             <motion.p 
@@ -396,7 +559,7 @@ export default function LandingPage({
                 whileHover={{ scale: 1.025, y: -1 }}
                 whileTap={{ scale: 0.985 }}
                 onClick={onGetStarted}
-                className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-600/30 shadow-emerald-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer border-0"
+                className={`w-full sm:w-auto px-8 py-3.5 ${lTheme.bg} ${lTheme.bgHover} text-white font-semibold rounded-xl shadow-lg ${lTheme.shadow} transition-all flex items-center justify-center gap-2 cursor-pointer border-0`}
               >
                 Go to App Dashboard <ChevronRight className="w-4 h-4" />
               </motion.button>
@@ -404,7 +567,7 @@ export default function LandingPage({
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.985 }}
                 href="#features"
-                className="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl text-center hover:bg-slate-50 hover:text-emerald-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition-all cursor-pointer"
+                className={`w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl text-center hover:bg-slate-50 ${lTheme.textHover} dark:bg-slate-900 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-800 transition-all cursor-pointer`}
               >
                 Explore Features
               </motion.a>
@@ -418,15 +581,15 @@ export default function LandingPage({
               className="pt-6 grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0 text-slate-550 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/85"
             >
               <div>
-                <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">45+ Acres</span>
+                <span className={`block text-2xl font-bold ${lTheme.text} font-display`}>45+ Acres</span>
                 <span className="text-[11px] font-mono tracking-tight">Avg. Farm Cover</span>
               </div>
               <div>
-                <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">30% Plus</span>
+                <span className={`block text-2xl font-bold ${lTheme.text} font-display`}>30% Plus</span>
                 <span className="text-[11px] font-mono tracking-tight">Saving on Feed</span>
               </div>
               <div>
-                <span className="block text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-display">95% AI</span>
+                <span className={`block text-2xl font-bold ${lTheme.text} font-display`}>95% AI</span>
                 <span className="text-[11px] font-mono tracking-tight">Diagnosis Acc.</span>
               </div>
             </motion.div>
@@ -447,7 +610,13 @@ export default function LandingPage({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
-                    Live AI Sandbox <Sparkles className="w-3 h-3 text-emerald-500 fill-emerald-500 animate-bounce" />
+                    Live AI Sandbox {iconStyle === "glow" ? (
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse drop-shadow-[0_0_4px_rgba(245,158,11,0.5)]" />
+                    ) : iconStyle === "duotone" ? (
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" fillOpacity={0.3} />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[1.5]" />
+                    )}
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-slate-400 font-medium">Model: gemini-3.5-flash</span>
@@ -475,7 +644,7 @@ export default function LandingPage({
                         onClick={() => setSimCrop(crop.name as any)}
                         className={`py-2 px-2.5 rounded-xl border font-semibold flex items-center justify-center gap-1.5 transition-all outline-none cursor-pointer ${
                           simCrop === crop.name
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/20"
+                            ? `${lTheme.bg} text-white ${lTheme.border} shadow-sm ${lTheme.shadow}`
                             : "bg-slate-50 border-slate-200/80 dark:bg-slate-800/50 dark:border-slate-700/60 hover:bg-slate-100 hover:border-slate-300 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
                         }`}
                       >
@@ -497,7 +666,7 @@ export default function LandingPage({
                           onClick={() => setSimMoisture(lev as any)}
                           className={`py-1.5 rounded-lg border text-center font-bold text-[10px] transition-all outline-none cursor-pointer ${
                             simMoisture === lev
-                              ? "bg-slate-900 border-slate-900 text-white dark:bg-emerald-500 dark:border-emerald-500 dark:text-slate-950 shadow-sm"
+                              ? `bg-slate-900 border-slate-900 text-white dark:${lTheme.bg} dark:${lTheme.border} dark:text-white shadow-sm`
                               : "bg-slate-50 border-slate-200/80 dark:bg-slate-800/40 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
                           }`}
                         >
@@ -517,12 +686,12 @@ export default function LandingPage({
                           onClick={() => setSimNutrient(nut as any)}
                           className={`py-1 px-2 border rounded-lg text-left text-[10px] font-semibold transition-all flex items-center justify-between outline-none cursor-pointer ${
                             simNutrient === nut
-                              ? "bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-900/40 dark:text-teal-300"
+                              ? "bg-slate-100 border-slate-300 text-slate-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
                               : "bg-slate-50/50 border-slate-200/80 dark:bg-slate-800/20 dark:border-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
                           }`}
                         >
                           <span>{nut}</span>
-                          <span className={`${simNutrient === nut ? "opacity-100 scale-100" : "opacity-0 scale-75"} text-[9px] bg-emerald-600 text-white px-1 rounded transition-all`}>✓</span>
+                          <span className={`${simNutrient === nut ? "opacity-100 scale-100" : "opacity-0 scale-75"} text-[9px] ${lTheme.bg} text-white px-1 rounded transition-all`}>✓</span>
                         </button>
                       ))}
                     </div>
@@ -543,14 +712,14 @@ export default function LandingPage({
                       exit={{ opacity: 0 }}
                       className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-10 space-y-2.5 text-center"
                     >
-                      <Activity className="w-7 h-7 text-emerald-500 animate-pulse" />
+                      <Activity className={`w-7 h-7 ${lTheme.text} animate-pulse`} />
                       <div>
                         <div className="text-[11px] font-semibold font-mono text-slate-700 dark:text-slate-300 tracking-tight">
                           {simProgress < 40 ? "Aligning satellite moisture layers..." : "Synthesizing chemistry telemetry..."}
                         </div>
                         <div className="w-36 bg-slate-200 dark:bg-slate-800 h-1 rounded-full mt-2 mx-auto overflow-hidden">
                           <motion.div 
-                            className="bg-emerald-500 h-full rounded"
+                            className={`${lTheme.bg} h-full rounded`}
                             initial={{ width: 0 }}
                             animate={{ width: `${simProgress}%` }}
                             transition={{ duration: 0.35 }}
@@ -572,17 +741,35 @@ export default function LandingPage({
                   <div className="grid grid-cols-2 gap-3">
                     
                     {/* Block A: Prospective improvement */}
-                    <div className="p-3 bg-emerald-50/65 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex flex-col justify-between">
-                      <span className="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block">Est. Yield Improve</span>
+                    <div className={`p-3 ${lTheme.bgLight} border ${lTheme.borderLight} rounded-2xl flex flex-col justify-between`}>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-mono font-bold ${lTheme.text} uppercase tracking-wider block`}>Est. Yield Improve</span>
+                        {iconStyle === "glow" ? (
+                          <TrendingUp className={`w-4 h-4 ${lTheme.text} animate-pulse`} style={{ filter: `drop-shadow(0px 0px 6px ${lTheme.glowColor})` }} fill="currentColor" />
+                        ) : iconStyle === "duotone" ? (
+                          <TrendingUp className={`w-4 h-4 ${lTheme.text}`} fill="currentColor" fillOpacity={0.3} />
+                        ) : (
+                          <TrendingUp className="w-4 h-4 text-slate-550 dark:text-slate-450 stroke-[1.5]" />
+                        )}
+                      </div>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-display">{currentResult.yield}</span>
-                        <span className="text-[10px] font-bold text-emerald-600 font-mono">Harvest Gain</span>
+                        <span className={`text-3xl font-extrabold ${lTheme.text} font-display`}>{currentResult.yield}</span>
+                        <span className={`text-[10px] font-bold ${lTheme.text} font-mono`}>Harvest Gain</span>
                       </div>
                     </div>
 
                     {/* Block B: Suitability categorizer */}
                     <div className={`p-3 border rounded-2xl flex flex-col justify-between ${currentResult.border}`}>
-                      <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Soil Compatibility</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Soil Compatibility</span>
+                        {iconStyle === "glow" ? (
+                          <Target className="w-4 h-4 text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.5)] animate-pulse" fill="currentColor" />
+                        ) : iconStyle === "duotone" ? (
+                          <Target className={`w-4 h-4 ${lTheme.text}`} fill="currentColor" fillOpacity={0.3} />
+                        ) : (
+                          <Target className="w-4 h-4 text-slate-500 dark:text-slate-400 stroke-[1.5]" />
+                        )}
+                      </div>
                       <div className="mt-1">
                         <span className={`inline-block px-2.5 py-1 text-xs font-bold rounded-lg ${currentResult.css}`}>
                           {currentResult.status}
@@ -595,7 +782,13 @@ export default function LandingPage({
 
                   {/* Prescription advice text */}
                   <div className="p-3 bg-slate-55 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-2 text-[11px] leading-relaxed">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    {iconStyle === "glow" ? (
+                      <CheckCircle className={`w-4 h-4 ${lTheme.text} mt-0.5 shrink-0 animate-pulse`} style={{ filter: `drop-shadow(0px 0px 4px ${lTheme.glowColor})` }} fill="currentColor" />
+                    ) : iconStyle === "duotone" ? (
+                      <CheckCircle className={`w-4 h-4 ${lTheme.text} mt-0.5 shrink-0`} fill="currentColor" fillOpacity={0.3} />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-slate-700 dark:text-slate-350 mt-0.5 shrink-0 stroke-[1.5]" />
+                    )}
                     <div>
                       <strong className="text-slate-800 dark:text-slate-200 font-semibold">Gemini Soil Core Recommendation: </strong>
                       <span className="text-slate-600 dark:text-slate-300">{currentResult.advice}</span>
@@ -651,11 +844,10 @@ export default function LandingPage({
                 whileHover={{ 
                   y: -8, 
                   scale: 1.02,
-                  boxShadow: "0 20px 25px -5px rgba(16, 185, 129, 0.08)"
                 }}
-                className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm"
+                className={`p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-lg transition-all duration-300 shadow-sm`}
               >
-                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 rounded-xl flex items-center justify-center mb-5">
+                <div className={`w-12 h-12 ${lTheme.bgLight} rounded-xl flex items-center justify-center mb-5`}>
                   {getFeatureIcon(feat.key)}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 font-display">{feat.title}</h3>
@@ -677,20 +869,20 @@ export default function LandingPage({
               transition={{ duration: 0.6, type: "spring", stiffness: 100, damping: 15 }}
               className="lg:col-span-5 relative"
             >
-              <div className="relative aspect-auto min-h-[380px] sm:min-h-[400px] lg:aspect-square max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 bg-emerald-800 text-white p-6 sm:p-8 flex flex-col justify-between">
+              <div className={`relative aspect-auto min-h-[380px] sm:min-h-[400px] lg:aspect-square max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl border border-slate-250 dark:border-slate-800 ${lTheme.bgSection} text-white p-6 sm:p-8 flex flex-col justify-between`}>
                 <div className="space-y-4">
-                  <Sprout className="w-12 h-12 text-emerald-300" />
-                  <blockquote className="text-lg italic text-emerald-100 leading-relaxed">
+                  <Sprout className={`w-12 h-12 ${lTheme.accentTextSection}`} />
+                  <blockquote className={`text-lg italic ${lTheme.textSection} leading-relaxed`}>
                     "AgriSmart shifted my crop focus this spring. The soil recommender logic pushed me to wheat rotations, saving crucial water resources while increasing our net yield margins."
                   </blockquote>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-sm font-bold font-mono">
+                  <div className={`w-10 h-10 rounded-full ${lTheme.accentBgSection} flex items-center justify-center text-sm font-bold font-mono`}>
                     SB
                   </div>
                   <div>
                     <span className="block font-semibold">Samuel Brown</span>
-                    <span className="text-xs text-emerald-300">Third-Gen Organic Grower</span>
+                    <span className={`text-xs ${lTheme.accentTextSection}`}>Third-Gen Organic Grower</span>
                   </div>
                 </div>
               </div>
@@ -711,7 +903,7 @@ export default function LandingPage({
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-slate-600 dark:text-slate-300">
                 <div className="flex gap-2 items-start">
-                  <div className="p-1 bg-emerald-100 dark:bg-emerald-950 rounded text-emerald-700 dark:text-emerald-400">
+                  <div className={`p-1 ${lTheme.bgLight} rounded ${lTheme.text}`}>
                     <Target className="w-4 h-4" />
                   </div>
                   <div>
@@ -721,7 +913,7 @@ export default function LandingPage({
                 </div>
 
                 <div className="flex gap-2 items-start">
-                  <div className="p-1 bg-emerald-100 dark:bg-emerald-950 rounded text-emerald-700 dark:text-emerald-400">
+                  <div className={`p-1 ${lTheme.bgLight} rounded ${lTheme.text}`}>
                     <Award className="w-4 h-4" />
                   </div>
                   <div>
@@ -736,23 +928,23 @@ export default function LandingPage({
       </section>
 
       {/* 5. Metrics & Impact Indicators */}
-      <section id="stats" className="py-16 bg-emerald-800 text-emerald-50">
+      <section id="stats" className={`py-16 ${lTheme.bgSection} ${lTheme.textSection}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           <div className="space-y-1">
             <span className="text-4xl md:text-5xl font-extrabold block text-white font-display">250,000+</span>
-            <span className="text-xs uppercase tracking-widest text-emerald-200 font-mono">Diagnoses Managed</span>
+            <span className={`text-xs uppercase tracking-widest ${lTheme.accentTextSection} font-mono`}>Diagnoses Managed</span>
           </div>
           <div className="space-y-1">
             <span className="text-4xl md:text-5xl font-extrabold block text-white font-display">42%</span>
-            <span className="text-xs uppercase tracking-widest text-emerald-200 font-mono">Yield Increase Avg</span>
+            <span className={`text-xs uppercase tracking-widest ${lTheme.accentTextSection} font-mono`}>Yield Increase Avg</span>
           </div>
           <div className="space-y-1">
             <span className="text-4xl md:text-5xl font-extrabold block text-white font-display">3.5M gal</span>
-            <span className="text-xs uppercase tracking-widest text-emerald-200 font-mono">Water Conserved</span>
+            <span className={`text-xs uppercase tracking-widest ${lTheme.accentTextSection} font-mono`}>Water Conserved</span>
           </div>
           <div className="space-y-1">
             <span className="text-4xl md:text-5xl font-extrabold block text-white font-display">18,500</span>
-            <span className="text-xs uppercase tracking-widest text-emerald-200 font-mono">Active Farmers</span>
+            <span className={`text-xs uppercase tracking-widest ${lTheme.accentTextSection} font-mono`}>Active Farmers</span>
           </div>
         </div>
       </section>
@@ -768,15 +960,15 @@ export default function LandingPage({
             
             <div className="space-y-4 text-slate-700 dark:text-slate-300 text-sm">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <MapPin className={`w-5 h-5 ${lTheme.text} shrink-0 mt-0.5`} />
                 <span>Macherla, Palnadu, AP - 522426</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-emerald-600 shrink-0" />
+                <Phone className={`w-5 h-5 ${lTheme.text} shrink-0`} />
                 <span>+91 6304045279</span>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-emerald-600 shrink-0" />
+                <Mail className={`w-5 h-5 ${lTheme.text} shrink-0`} />
                 <span>support@agrismart.corp</span>
               </div>
             </div>
@@ -793,7 +985,7 @@ export default function LandingPage({
                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     required
                     placeholder="E.g., Sanjay Patel"
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 ${lTheme.ring}`}
                   />
                 </div>
                 <div>
@@ -804,7 +996,7 @@ export default function LandingPage({
                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                     required
                     placeholder="you@domain.com"
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 ${lTheme.ring}`}
                   />
                 </div>
               </div>
@@ -816,19 +1008,19 @@ export default function LandingPage({
                   onChange={(e) => setContactForm({ ...contactForm, msg: e.target.value })}
                   required
                   placeholder="How can our agronomist experts guide your harvest team?"
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 ${lTheme.ring}`}
                 ></textarea>
               </div>
 
               <button 
                 type="submit"
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl tracking-wide transition-all active:scale-95"
+                className={`w-full py-3 ${lTheme.bg} ${lTheme.bgHover} text-white font-semibold rounded-xl tracking-wide transition-all active:scale-95`}
               >
                 Send Inquiry Message
               </button>
 
               {formSubmitted && (
-                <div className="p-3.5 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-xl text-center text-xs font-semibold">
+                <div className={`p-3.5 ${lTheme.bgLight} ${lTheme.text} rounded-xl text-center text-xs font-semibold`}>
                   ✓ Form received! Thank you, our engineering experts will respond via email.
                 </div>
               )}
@@ -840,7 +1032,7 @@ export default function LandingPage({
       {/* 7. Footer */}
       <footer className="bg-slate-950 text-slate-350 py-16 border-t border-slate-800 relative overflow-hidden">
         {/* Subtle decorative mesh background */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 opacity-10 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: lTheme.glowColor }} />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-slate-800/80">
@@ -848,8 +1040,8 @@ export default function LandingPage({
             {/* Column 1: Brand info */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-white">
-                <div className="p-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                  <Sprout className="w-5 h-5 text-emerald-400 animate-pulse" />
+                <div className="p-1.5 bg-slate-800 rounded-lg border border-slate-700/60">
+                  <Sprout className={`w-5 h-5 ${lTheme.text} animate-pulse`} />
                 </div>
                 <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">AgriSmart Systems</span>
               </div>
@@ -857,26 +1049,26 @@ export default function LandingPage({
                 Empowering modern agriculture with cutting-edge visual diagnostics, crop intelligence, and precise financial ledger tools.
               </p>
             </div>
-
+ 
             {/* Column 2: Representative Contact */}
             <div className="space-y-4">
               <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Contact Details</h4>
               <ul className="space-y-3 text-sm text-slate-400">
                 <li className="flex items-start gap-2.5">
-                  <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <MapPin className={`w-4 h-4 ${lTheme.text} shrink-0 mt-0.5`} />
                   <span>Macherla, Palnadu, AP - 522426</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <a href="tel:+916304045279" className="hover:text-emerald-400 transition-colors">+91 6304045279</a>
+                  <Phone className={`w-4 h-4 ${lTheme.text} shrink-0`} />
+                  <a href="tel:+916304045279" className={`hover:${lTheme.text} transition-colors`}>+91 6304045279</a>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <a href="mailto:balunaikbanavath662@gmail.com" className="hover:text-emerald-400 transition-colors">balunaikbanavath662@gmail.com</a>
+                  <Mail className={`w-4 h-4 ${lTheme.text} shrink-0`} />
+                  <a href="mailto:balunaikbanavath662@gmail.com" className={`hover:${lTheme.text} transition-colors`}>balunaikbanavath662@gmail.com</a>
                 </li>
               </ul>
             </div>
-
+ 
             {/* Column 3: Lead Developer Profile */}
             <div className="space-y-4">
               <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Lead Developer</h4>
@@ -888,14 +1080,14 @@ export default function LandingPage({
                     href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="p-2 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center animate-bounce-short"
+                    className={`p-2 bg-slate-800 ${lTheme.hoverBgLight} rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center animate-bounce-short`}
                     title="LinkedIn Profile"
                   >
                     <Linkedin className="w-4.5 h-4.5" />
                   </a>
                   <a 
                     href="mailto:balunaikbanavath662@gmail.com"
-                    className="p-2 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center"
+                    className={`p-2 bg-slate-800 ${lTheme.hoverBgLight} rounded-xl border border-slate-700/60 text-slate-300 transition-all duration-300 flex items-center justify-center`}
                     title="Send Email"
                   >
                     <Mail className="w-4.5 h-4.5" />
@@ -908,16 +1100,16 @@ export default function LandingPage({
             <div className="space-y-4">
               <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Legal & Resources</h4>
               <div className="flex flex-col gap-2.5 text-sm text-slate-400">
-                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                <a href="#" className={`hover:${lTheme.text} transition-colors inline-flex items-center gap-1.5 group`}>
+                  <ChevronRight className={`w-3.5 h-3.5 text-slate-600 group-hover:${lTheme.text} transition-colors`} />
                   <span>Terms of Service</span>
                 </a>
-                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                <a href="#" className={`hover:${lTheme.text} transition-colors inline-flex items-center gap-1.5 group`}>
+                  <ChevronRight className={`w-3.5 h-3.5 text-slate-600 group-hover:${lTheme.text} transition-colors`} />
                   <span>Privacy Policy</span>
                 </a>
-                <a href="#" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 group">
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                <a href="#" className={`hover:${lTheme.text} transition-colors inline-flex items-center gap-1.5 group`}>
+                  <ChevronRight className={`w-3.5 h-3.5 text-slate-600 group-hover:${lTheme.text} transition-colors`} />
                   <span>SLA Guarantee</span>
                 </a>
               </div>
@@ -932,7 +1124,7 @@ export default function LandingPage({
                 href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:underline font-medium"
+                className={`${lTheme.text} hover:underline font-medium`}
               >
                 Banavath Balu Naik
               </a>
@@ -950,7 +1142,7 @@ export default function LandingPage({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowCustomizer(!showCustomizer)}
-          className="p-4 bg-emerald-600 text-white rounded-full shadow-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all font-semibold text-xs cursor-pointer border-0"
+          className={`p-4 ${lTheme.bg} hover:opacity-90 text-white rounded-full shadow-2xl flex items-center justify-center gap-2 transition-all font-semibold text-xs cursor-pointer border-0`}
         >
           <Palette className="w-5 h-5 animate-bounce" />
           <span className="hidden sm:inline font-sans">Customize Aesthetics</span>
@@ -966,59 +1158,59 @@ export default function LandingPage({
             className="fixed bottom-24 right-6 z-50 w-80 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-5"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-500" />
-                <span className="font-bold text-sm text-slate-900 dark:text-white">Aesthetic Controls</span>
+                <div className="flex items-center gap-2">
+                  <Sparkles className={`w-4 h-4 ${lTheme.text}`} />
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">Aesthetic Controls</span>
+                </div>
+                <button 
+                  onClick={() => setShowCustomizer(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button 
-                onClick={() => setShowCustomizer(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Icon theme style selector */}
-            <div className="space-y-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">1. Choose Icon Style</span>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: "outlines", label: "Outline", icon: <Laptop className="w-3.5 h-3.5" /> },
-                  { id: "glow", label: "Glow", icon: <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" /> },
-                  { id: "duotone", label: "Duotone", icon: <Sprout className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" fillOpacity={0.3} /> }
-                ].map((style) => (
-                  <button
-                    key={style.id}
-                    onClick={() => setIconStyle?.(style.id as any)}
-                    className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${iconStyle === style.id ? "bg-emerald-50/50 border-emerald-500 text-emerald-700 dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100" : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
-                  >
-                    {style.icon}
-                    <span>{style.label}</span>
-                  </button>
-                ))}
+              {/* Icon theme style selector */}
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">1. Choose Icon Style</span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "outlines", label: "Outline", icon: <Laptop className="w-3.5 h-3.5" /> },
+                    { id: "glow", label: "Glow", icon: <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" /> },
+                    { id: "duotone", label: "Duotone", icon: <Sprout className={`w-3.5 h-3.5 ${lTheme.text}`} fill="currentColor" fillOpacity={0.3} /> }
+                  ].map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => setIconStyle?.(style.id as any)}
+                      className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${iconStyle === style.id ? `${lTheme.bgLight} ${lTheme.border} ${lTheme.text} dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100` : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
+                    >
+                      {style.icon}
+                      <span>{style.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Dark/Light mode selector */}
-            <div className="space-y-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">2. Mode Selector</span>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: "light", label: "Light", icon: <Sun className="w-3.5 h-3.5 text-amber-500" /> },
-                  { id: "dark", label: "Dark", icon: <Moon className="w-3.5 h-3.5 text-indigo-400" /> },
-                  { id: "system", label: "System", icon: <Monitor className="w-3.5 h-3.5 text-teal-500" /> }
-                ].map((mode) => (
-                  <button
-                    key={mode.id}
-                    onClick={(e) => changeThemeMode?.(mode.id as any, e)}
-                    className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${themeMode === mode.id ? "bg-emerald-50/50 border-emerald-500 text-emerald-700 dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100" : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
-                  >
-                    {mode.icon}
-                    <span>{mode.label}</span>
-                  </button>
-                ))}
+              {/* Dark/Light mode selector */}
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block font-mono">2. Mode Selector</span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "light", label: "Light", icon: <Sun className="w-3.5 h-3.5 text-amber-500" /> },
+                    { id: "dark", label: "Dark", icon: <Moon className="w-3.5 h-3.5 text-indigo-400" /> },
+                    { id: "system", label: "System", icon: <Monitor className="w-3.5 h-3.5 text-teal-500" /> }
+                  ].map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={(e) => changeThemeMode?.(mode.id as any, e)}
+                      className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-[10px] font-bold cursor-pointer transition-all ${themeMode === mode.id ? `${lTheme.bgLight} ${lTheme.border} ${lTheme.text} dark:bg-slate-800 dark:border-slate-100 dark:text-slate-100` : "bg-slate-50 border-slate-200/60 dark:bg-slate-800/20 dark:border-slate-800 hover:bg-slate-100/50 text-slate-600 dark:text-slate-400"}`}
+                    >
+                      {mode.icon}
+                      <span>{mode.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
             {/* Accent Color switcher */}
             <div className="space-y-2">
